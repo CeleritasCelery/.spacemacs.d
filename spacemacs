@@ -351,6 +351,7 @@ values."
   (add-to-list 'auto-mode-alist '("\\.load\\'"         . specman-mode))
   (add-to-list 'auto-mode-alist '("\\.ecom\\'"         . specman-mode))
   (add-to-list 'auto-mode-alist '("\\.etst\\'"         . specman-mode))
+  (add-to-list 'auto-mode-alist '("\\.*rc$" . conf-unix-mode))
 
   (setq configuration-layer--elpa-archives
         `(("melpa" . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/melpa"))
