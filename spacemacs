@@ -338,11 +338,9 @@ values."
   ;;     (message "%s" (reglist-rainbow-identifiers-filter beg end))
   ;;     ))
 
-  (add-to-list 'auto-mode-alist '("\\.itpp\\'"         . itpp-mode))
   (add-to-list 'auto-mode-alist '("\\.summary\\'"      . ruby-mode))
   (add-to-list 'auto-mode-alist '("\\.do\\'"           . tcl-mode))
   (add-to-list 'auto-mode-alist '("\\.vs\\'"           . verilog-mode))
-  (add-to-list 'auto-mode-alist '("\\.spfspec\\'"      . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.svh\\'"          . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.vf\\'"           . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.hier\\'"         . verilog-mode))
@@ -351,7 +349,7 @@ values."
   (add-to-list 'auto-mode-alist '("\\.load\\'"         . specman-mode))
   (add-to-list 'auto-mode-alist '("\\.ecom\\'"         . specman-mode))
   (add-to-list 'auto-mode-alist '("\\.etst\\'"         . specman-mode))
-  (add-to-list 'auto-mode-alist '("\\.*rc$" . conf-unix-mode))
+  (add-to-list 'auto-mode-alist '("rc\\'"              . conf-unix-mode))
 
   (setq configuration-layer--elpa-archives
         `(("melpa" . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/melpa"))
@@ -430,7 +428,6 @@ values."
   ;; (setenv "PERL5LIB" "/nfs/site/home/tjhinckl/perl5/lib/perl5")
   ;; (setenv "PATH" (concat (getenv "PATH") ":/nfs/site/home/tjhinckl/perl5/bin"))
   ;; (setq exec-path (append exec-path '("/nfs/site/home/tjhinckl/perl5/bin")))
-
   ;; (require 'plsense)
 
   ;; ;; Key binding
@@ -446,6 +443,13 @@ values."
   ;; Do setting recommemded configuration
   ;; (plsense-config-default)
 
+  ;; (add-hook 'holy-mode-hook (lambda ()
+  ;;                             (setq evil-escape-mode-set (symbol-value 'evil-escape-mode))
+  ;;                             (evil-escape-mode -1)))
+
+  ;; (add-hook 'evil-mode-hook (lambda ()
+  ;;                             (when (evil-escape-mode-set)
+  ;;                               (evil-escape-mode))))
 
 
   (push "/nfs/site/home/tjhinckl/personal/verilator-3.884/include" flycheck-clang-include-path)
