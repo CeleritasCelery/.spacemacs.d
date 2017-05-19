@@ -358,6 +358,7 @@ values."
           ("org"   . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/org"))
           ("gnu"   . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/gnu"))))
 
+
   )
 
 (defun dotspacemacs/user-config ()
@@ -388,6 +389,8 @@ values."
   (setq no-dots-whitelist '("*Helm file completions*")) ;; show directory when selecting a directory
   (setq read-quoted-char-radix 16) ;; show unpritable chars in hex
   (setq helm-buffer-max-length 60) ;; max buffer column larger for helm
+
+  (setq plcmp-default-lighter  "Pc")
   ;; (setq which-key-popup-type 'minibuffer) ;; use minibuffer for terminal compatibility
 
   ;; (define-key function-key-map [backtab] [S-tab])
