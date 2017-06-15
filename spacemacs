@@ -56,7 +56,6 @@ values."
      no-dots
      colors
      (org :variables org-enable-github-support t)
-     ;; (smart-tabs :variables smart-tabs-default-insinuations '(cperl))
      (evil-snipe :variables evil-snipe-enable-alternate-f-and-t-behaviors t)
      (shell :variables shell-default-height 30 shell-default-position 'bottom)
      (spell-checking :variables spell-checking-enable-by-default nil)
@@ -65,7 +64,7 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(json-mode json-snatcher eimp image+ vlf plsense perl-completion anything)
+   dotspacemacs-additional-packages '(json-mode json-snatcher eimp image+ vlf)
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
@@ -94,9 +93,9 @@ values."
    ;; This variable has no effect if Emacs is launched with the parameter
    ;; `--insecure' which forces the value of this variable to nil.
    ;; (default t)
-   dotspacemacs-elpa-https t
+   dotspacemacs-elpa-https nil
    ;; Maximum allowed time in seconds to contact an ELPA repository.
-   dotspacemacs-elpa-timeout 1
+   dotspacemacs-elpa-timeout 10
    ;; If non nil then spacemacs will check for updates at startup
    ;; when the current branch is not `develop'. Note that checking for
    ;; new versions works via git commands, thus it calls GitHub services
@@ -128,8 +127,7 @@ values."
    ;; `recents' `bookmarks' `projects' `agenda' `todos'."
    ;; List sizes may be nil, in which case
    ;; `spacemacs-buffer-startup-lists-length' takes effect.
-   dotspacemacs-startup-lists '((recents . 5)
-                                (projects . 7))
+   dotspacemacs-startup-lists '((recents . 5) (projects . 7))
    ;; True if the home buffer should respond to resize events.
    dotspacemacs-startup-buffer-responsive t
    ;; Default major mode of the scratch buffer (default `text-mode')
@@ -137,17 +135,11 @@ values."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(spacemacs-dark
-                         spacemacs-light)
+   dotspacemacs-themes '(spacemacs-dark spacemacs-light)
    ;; If non nil the cursor color matches the state color in GUI Emacs.
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
-   ;; dotspacemacs-default-font '("Monospace"
-   ;;                             :size 11
-   ;;                             :weight normal
-   ;;                             :width normal
-   ;;                             :powerline-scale 1)
    dotspacemacs-default-font '("Source Code Pro"
                                :size 11
                                :weight normal
@@ -315,29 +307,6 @@ values."
   (autoload 'reglist-mode "reglist-mode" "reglist-mode" t)
   (autoload 'spfspec-mode "spfspec-mode" "spfspec-mode" t)
 
-  ;; (defun reglist-rainbow-identifiers-filter (beg end)
-  ;;   "only color directives"
-  ;;   (let (line-start)
-  ;;     (setq line-start
-  ;;           (save-excursion
-  ;;             (goto-char beg)
-  ;;             (line-beginning-position)))
-  ;;     (when (string-match
-  ;;            "^[[:space:]]*[-.+]$"
-  ;;            (buffer-substring-no-properties line-start beg)) t)
-  ;;       ))
-
-  ;; (defun reglist-check-rainbow-name ()
-  ;;   (interactive)
-  ;;   (let (beg end)
-  ;;     (setq beg (region-beginning)
-  ;;           end (region-end))
-  ;;     ;; (if (reglist-rainbow-identifiers-filter beg end)
-  ;;     ;;     (message "found %s" (buffer-substring-no-properties beg end))
-  ;;     ;;   (message "could not find %s" (buffer-substring-no-properties beg end)))
-  ;;     (message "%s" (reglist-rainbow-identifiers-filter beg end))
-  ;;     ))
-
   (add-to-list 'auto-mode-alist '("\\.summary\\'"      . ruby-mode))
   (add-to-list 'auto-mode-alist '("\\.do\\'"           . tcl-mode))
   (add-to-list 'auto-mode-alist '("\\.vs\\'"           . verilog-mode))
@@ -351,12 +320,10 @@ values."
   (add-to-list 'auto-mode-alist '("\\.etst\\'"         . specman-mode))
   (add-to-list 'auto-mode-alist '("rc\\'"              . conf-unix-mode))
 
-  (setq configuration-layer--elpa-archives
-        `(("melpa" . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/melpa"))
-          ("org"   . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/org"))
-          ("gnu"   . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/gnu"))))
-
-
+  ;; (setq configuration-layer--elpa-archives
+  ;;       `(("melpa" . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/melpa"))
+  ;;         ("org"   . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/org"))
+  ;;         ("gnu"   . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/gnu"))))
   )
 
 (defun dotspacemacs/user-config ()
@@ -388,80 +355,13 @@ values."
   (setq read-quoted-char-radix 16) ;; show unpritable chars in hex
   (setq helm-buffer-max-length 60) ;; max buffer column larger for helm
 
-  (setq plcmp-default-lighter  "Pc")
-  ;; (setq which-key-popup-type 'minibuffer) ;; use minibuffer for terminal compatibility
-
-  ;; (define-key function-key-map [backtab] [S-tab])
-  ;; (define-key function-key-map [iso-lefttab] [backtab])
-
-  ;; (with-eval-after-load "highlight-numbers"
-  ;;   (puthash 'spfspec-mode
-  ;;            (rx (or (and
-  ;;                     symbol-start
-  ;;                     digit
-  ;;                     (*? any)
-  ;;                     symbol-end)
-  ;;                    (and
-  ;;                     "'"
-  ;;                     (or (and
-  ;;                          "h"
-  ;;                          (*? hex))
-  ;;                         (and
-  ;;                          "b"
-  ;;                          (*? (char "01")))
-  ;;                         (and
-  ;;                          "o"
-  ;;                          (*? (char "01234567")))
-  ;;                         (and
-  ;;                          "d"
-  ;;                          (*? digit)))
-  ;;                     symbol-end)))
-  ;;            highlight-numbers-modelist))
-
   (with-eval-after-load "highlight-numbers"
     (puthash
      'spfspec-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]]*?\\|b[01]*?\\|o[0-7]*?\\|d[[:digit:]]*?\\)\\_>"
      highlight-numbers-modelist))
 
-  ;; ;; (setenv "PERL_MM_OPT" "INSTALL_BASE=/nfs/site/home/tjhinckl/perl5")
-  ;; ;; (setenv "PERL_LOCAL_LIB_ROOT" "/nfs/site/home/tjhinckl/perl5")
-  ;; (setenv "PERL5LIB" "/nfs/site/home/tjhinckl/perl5/lib/perl5")
-  ;; (setenv "PATH" (concat (getenv "PATH") ":/nfs/site/home/tjhinckl/perl5/bin"))
-  ;; (setq exec-path (append exec-path '("/nfs/site/home/tjhinckl/perl5/bin")))
-  ;; (require 'plsense)
-
-  ;; ;; Key binding
-  ;; (setq plsense--config-path "~/perl5/bin")
-
-  ;; (setq plsense-popup-help-key "C-:")
-  ;; (setq plsense-display-help-buffer-key "M-:")
-  ;; (setq plsense-jump-to-definition-key "C->")
-
-  ;; Make config suit for you. About the config item, eval the following sexp.
-  ;; (customize-group "plsense")
-
-  ;; Do setting recommemded configuration
-  ;; (plsense-config-default)
-
-  ;; (add-hook 'holy-mode-hook (lambda ()
-  ;;                             (setq evil-escape-mode-set (symbol-value 'evil-escape-mode))
-  ;;                             (evil-escape-mode -1)))
-
-  ;; (add-hook 'evil-mode-hook (lambda ()
-  ;;                             (when (evil-escape-mode-set)
-  ;;                               (evil-escape-mode))))
-
-
   (push "/nfs/site/home/tjhinckl/personal/verilator-3.884/include" flycheck-clang-include-path)
 
-  (require 'perl-completion)
-  (add-hook  'cperl-mode-hook
-             (lambda ()
-               (when (require 'auto-complete nil t) ; no error whatever auto-complete.el is not installed.
-                 (auto-complete-mode t)
-                 (make-variable-buffer-local 'ac-sources)
-                 (setq ac-sources
-                       '(ac-source-perl-completion)))))
 
   (add-hook 'reglist-mode-hook 'color-identifiers-mode)
   (with-eval-after-load "color-identifiers-mode"
@@ -483,22 +383,7 @@ values."
              (put-text-property start end 'color-identifiers:fontified t))))
        limit)))
 
-  ;; Customized filter: don't mark *all* identifiers
-  ;; (defun reglist-rainbow-identifiers-filter (beg end)
-  ;;   "Only highlight standalone words or those following 'this.' or 'self.'"
-  ;;   (if ())
-  ;;   (let ((curr-char (char-after beg))
-  ;;         (prev-char (char-before beg))
-  ;;         (prev-self (buffer-substring-no-properties
-  ;;                     (max (point-min) (- beg 5)) beg)))
-  ;;     (and (not (member curr-char
-  ;;                       '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ??)))
-  ;;          (or (not (equal prev-char ?\.))
-  ;;              (equal prev-self "self.")
-  ;;              (equal prev-self "this.")))))
 
-  ;; (add-hook 'yas-after-exit-snippet-hook (lambda () (smartparens-mode 1)))
-  ;; (push "/p/hdk/cad/spf/latest/lib/perl5" flycheck-perl-include-path)
   (add-hook 'focus-in-hook 'redraw-display) ;; display may be out of focus when switching workspaces
 
   ;; set arrow keys in isearch and evil search. up/down is history. press Return to exit
@@ -531,18 +416,6 @@ values."
   (add-hook 'emacs-lisp-mode-hook 'rainbow-mode)
   (add-hook 'itpp-mode-hook (lambda () (highlight-numbers--turn-off)))
 
-  ;; (defmacro define-and-bind-text-object (key start-regex end-regex)
-  ;;   (let ((inner-name (make-symbol "inner-name"))
-  ;;         (outer-name (make-symbol "outer-name")))
-  ;;     `(progn
-  ;;        (evil-define-text-object ,inner-name (count &optional beg end type)
-  ;;          (evil-select-paren ,start-regex ,end-regex beg end type count nil))
-  ;;        (evil-define-text-object ,outer-name (count &optional beg end type)
-  ;;          (evil-select-paren ,start-regex ,end-regex beg end type count t))
-  ;;        (define-key evil-inner-text-objects-map ,key (quote ,inner-name))
-  ;;        (define-key evil-outer-text-objects-map ,key (quote ,outer-name)))))
-
-  ;; (define-and-bind-text-object "s" (rx (one-or-more (not (in "a-zA-Z_")))) (rx (one-or-more (not (in "a-zA-Z")))))
 
   (spacemacs|define-transient-state imagex
     :title "Image Manipulation Transient State"
@@ -582,19 +455,6 @@ values."
 
   (add-to-list 'load-path "~/.emacs.d/private/local/setup/")
   (require 'function-setup)
-  ;; (require 'buttonize-setup)
-  ;; (require 'perl-setup)
-  ;; (require 'vlf)
-  ;; (require 'shell-setup)
-
-  ;; (add-to-list 'load-path "~/personal/github/evil-matchit")
-  ;; (require 'evil-matchit)
-  ;; (global-evil-matchit-mode 1)
-
-  ;; (set-face-attribute 'avy-lead-face   nil :background "magenta2"   :foreground "gray16" :weight 'normal)
-  ;; (set-face-attribute 'avy-lead-face-0 nil :background "SlateBlue3" :foreground "gray16" :weight 'normal)
-  ;; (set-face-attribute 'avy-lead-face-1 nil :background "magenta2"   :foreground "gray16" :weight 'normal)
-  ;; (set-face-attribute 'avy-lead-face-2 nil :background "SlateBlue3" :foreground "gray16" :weight 'normal)
 
 )
 
@@ -607,7 +467,7 @@ values."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (anything perl-completion exec-path-from-shell evil-mc plsense yaxception org gitignore-mode fringe-helper git-gutter+ git-gutter magit magit-popup git-commit with-editor packed rainbow-mode rainbow-identifiers color-identifiers-mode python-mode vlf ox-gfm imenu-list flyspell-correct-helm flyspell-correct auto-dictionary eimp image+ graphviz-dot-mode org-projectile org-present org-pomodoro alert log4e gntp org-download htmlize gnuplot pos-tip flycheck company yasnippet auto-complete smart-tabs-mode xterm-color ws-butler window-numbering which-key wgrep web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package toc-org tabbar spacemacs-theme spaceline smex smeargle shell-pop restart-emacs ranger rainbow-delimiters quelpa popwin persp-mode pcre2el paradox orgit org-plus-contrib org-bullets open-junk-file neotree mwim multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint json-mode js2-refactor js-doc ivy-hydra info+ indent-guide ido-vertical-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-snipe evil-search-highlight-persist evil-numbers evil-nerd-commenter-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word dactyl-mode csv-mode counsel-projectile company-tern company-statistics company-shell column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+    (pyenv-mode company-anaconda anaconda-mode yapfify pyvenv pytest py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode pythonic skewer-mode simple-httpd multiple-cursors js2-mode dash-functional tern anything perl-completion exec-path-from-shell evil-mc plsense yaxception org gitignore-mode fringe-helper git-gutter+ git-gutter magit magit-popup git-commit with-editor packed rainbow-mode rainbow-identifiers color-identifiers-mode python-mode vlf ox-gfm imenu-list flyspell-correct-helm flyspell-correct auto-dictionary eimp image+ graphviz-dot-mode org-projectile org-present org-pomodoro alert log4e gntp org-download htmlize gnuplot pos-tip flycheck company yasnippet auto-complete smart-tabs-mode xterm-color ws-butler window-numbering which-key wgrep web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package toc-org tabbar spacemacs-theme spaceline smex smeargle shell-pop restart-emacs ranger rainbow-delimiters quelpa popwin persp-mode pcre2el paradox orgit org-plus-contrib org-bullets open-junk-file neotree mwim multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint json-mode js2-refactor js-doc ivy-hydra info+ indent-guide ido-vertical-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-snipe evil-search-highlight-persist evil-numbers evil-nerd-commenter-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word dactyl-mode csv-mode counsel-projectile company-tern company-statistics company-shell column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
  '(safe-local-variable-values
    (quote
     ((eval font-lock-add-keywords nil
