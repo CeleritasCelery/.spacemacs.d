@@ -64,7 +64,20 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(json-mode json-snatcher eimp image+ vlf)
+   dotspacemacs-additional-packages
+   '(
+     json-mode
+     json-snatcher
+     eimp
+     image+
+     vlf
+     (itpp-mode    :location local)
+     (reglist-mode :location local)
+     (specman-mode :location local)
+     (sgdc-mode    :location local)
+     (spfspec-mode :location local)
+     (functions    :location local)
+     )
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
@@ -100,7 +113,7 @@ values."
    ;; when the current branch is not `develop'. Note that checking for
    ;; new versions works via git commands, thus it calls GitHub services
    ;; whenever you start Emacs. (default nil)
-   dotspacemacs-check-for-update nil
+   dotspacemacs-check-for-update t
    ;; If non-nil, a form that evaluates to a package directory. For example, to
    ;; use different package directories for different Emacs versions, set this
    ;; to `emacs-version'.
@@ -236,7 +249,7 @@ values."
    ;; If non nil the frame is maximized when Emacs starts up.
    ;; Takes effect only if `dotspacemacs-fullscreen-at-startup' is nil.
    ;; (default nil) (Emacs 24.4+ only)
-   dotspacemacs-maximized-at-startup t
+   dotspacemacs-maximized-at-startup nil
    ;; A value from the range (0..100), in increasing opacity, which describes
    ;; the transparency level of a frame when it's active or selected.
    ;; Transparency can be toggled through `toggle-transparency'. (default 90)
@@ -256,8 +269,8 @@ values."
    ;; when it reaches the top or bottom of the screen. (default t)
    dotspacemacs-smooth-scrolling t
    ;; If non nil line numbers are turned on in all `prog-mode' and `text-mode'
-  ;; derivatives. If set to `relative', also turns on relative line numbers.
-  ;; (default nil)
+   ;; derivatives. If set to `relative', also turns on relative line numbers.
+   ;; (default nil)
    dotspacemacs-line-numbers t
    ;; Code folding method. Possible values are `evil' and `origami'.
    ;; (default 'evil)
@@ -286,7 +299,7 @@ values."
    dotspacemacs-default-package-repository nil
    ;; Delete whitespace while saving buffer. Possible values are `all'
    ;; to aggressively delete empty line and long sequences of whitespace,
-  ;; `trailing' to delete only the whitespace at end of lines, `changed'to
+   ;; `trailing' to delete only the whitespace at end of lines, `changed'to
    ;; delete only whitespace for changed lines or `nil' to disable cleanup.
    ;; (default nil)
    dotspacemacs-whitespace-cleanup nil
@@ -300,30 +313,17 @@ values."
 ;; before packages are loaded. If you are unsure, you should try in setting them in
 ;; `dotspacemacs/user-config' first."
 
-  (add-to-list 'load-path "~/.emacs.d/private/local/major-modes/")
-  (autoload 'specman-mode "specman-mode" "specman-mode" t)
-  (autoload 'sgdc-mode "sgdc-mode" "sgdc-mode" t)
-  (autoload 'itpp-mode "itpp-mode" "itpp-mode" t)
-  (autoload 'reglist-mode "reglist-mode" "reglist-mode" t)
-  (autoload 'spfspec-mode "spfspec-mode" "spfspec-mode" t)
-
   (add-to-list 'auto-mode-alist '("\\.summary\\'"      . ruby-mode))
   (add-to-list 'auto-mode-alist '("\\.do\\'"           . tcl-mode))
   (add-to-list 'auto-mode-alist '("\\.vs\\'"           . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.svh\\'"          . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.vf\\'"           . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.hier\\'"         . verilog-mode))
-  (add-to-list 'auto-mode-alist '("\\.e\\'"            . specman-mode))
-  (add-to-list 'auto-mode-alist '("\\.e3\\'"           . specman-mode))
-  (add-to-list 'auto-mode-alist '("\\.load\\'"         . specman-mode))
-  (add-to-list 'auto-mode-alist '("\\.ecom\\'"         . specman-mode))
-  (add-to-list 'auto-mode-alist '("\\.etst\\'"         . specman-mode))
   (add-to-list 'auto-mode-alist '("rc\\'"              . conf-unix-mode))
 
-  ;; (setq configuration-layer--elpa-archives
-  ;;       `(("melpa" . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/melpa"))
-  ;;         ("org"   . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/org"))
-  ;;         ("gnu"   . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/gnu"))))
+  ;; get around old magit git version problem
+  (setq magit-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git")
+
   )
 
 (defun dotspacemacs/user-config ()
@@ -334,9 +334,67 @@ values."
 ;; explicitly specified that a variable should be set before a package is loaded,
 ;; you should place your code here."
 
+  (use-package spfspec-mode
+    :defer t
+    :mode "\\.spfspec\\'"
+    :config
+    (with-eval-after-load "highlight-numbers"
+      (puthash
+       'spfspec-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]]*?\\|b[01]*?\\|o[0-7]*?\\|d[[:digit:]]*?\\)\\_>"
+       highlight-numbers-modelist)))
+
+  (use-package reglist-mode
+    :defer t
+    :mode "\\.list\\'"
+    :config
+    (progn
+      (add-hook 'reglist-mode-hook 'color-identifiers-mode)
+      (with-eval-after-load "color-identifiers-mode"
+        (add-to-list
+         'color-identifiers:modes-alist
+         `(reglist-mode
+           . ("^[[:space:]]*[-.+]" "\\_<\\([[:alpha:]]+[[:alnum:]]*\\)\\_>"
+              (nil font-lock-keyword-face font-lock-function-name-face))))
+
+        (defun color-identifiers:colorize (limit)
+          (color-identifiers:scan-identifiers
+           (lambda (start end)
+             (let* ((identifier (buffer-substring-no-properties start end))
+                    (hex (color-identifiers:color-identifier identifier)))
+               (when hex
+                 (put-text-property start end 'face `(:foreground ,hex))
+                 ;; (add-face-text-property start end '(:underline t))
+                 (add-face-text-property start end '(:weight bold))
+                 (put-text-property start end 'color-identifiers:fontified t))))
+           limit)))))
+
+  (use-package itpp-mode
+    :defer t
+    :mode "\\.itpp\\'"
+    :defer
+    (add-hook 'itpp-mode-hook (lambda () (highlight-numbers--turn-off))))
+
+  (use-package sgdc-mode
+    :defer t
+    :mode "\\.sgdc\\'"
+    :mode "\\.opt\\'"
+    )
+
+  (use-package specman-mode
+    :defer t
+    :mode "\\.e\\'"
+    :mode "\\.e3\\'"
+    :mode "\\.load\\'"
+    :mode "\\.ecom\\'"
+    :mode "\\.etst\\'"
+    )
+
   (setq-default tab-width 4) ;; You know what this means
   (setq-default indent-tabs-mode nil) ;; use spaces instead of tabs by default
   (setq-default require-final-newline t) ;; always require a newline at end of the file for compatibility
+  (setq-default visual-line-mode t) ;; cursor keys move by visual lines, not logical ones
+  (setq-default evil-snipe-scope 'line) ;; snipe current line only
+  (setq-default evil-snipe-repeat-scope 'line) ;; repeated snipes will stay on line
   (setq mouse-drag-copy-region nil)  ; stops selection with a mouse being immediately injected to the kill ring
   (setq select-enable-clipboard t) ;; tell emacs to use the system clipboard ...
   (setq select-enable-primary nil) ;; and don't use the primary
@@ -345,53 +403,23 @@ values."
   (setq projectile-enable-caching t) ;; cache the project so it doesn't take an eternity to load
   (setq delete-by-moving-to-trash nil) ;; don't move deleted files to my trash, which is in my home disk
   (setq dired-recursive-deletes 'always) ;; don't ask for confirmation to delete files
-  (fset 'evil-visual-update-x-selection 'ignore) ;; don't update the primary when in evil
-  (define-key global-map (kbd "<S-down-mouse-1>") 'mouse-save-then-kill) ;; use shift-click to mark a region
-  (global-linum-mode) ; Show line numbers by default
   (setq vc-follow-symlinks t) ; follow symlinks
   (setq large-file-warning-threshold nil) ;; Don't warn me when opening large files
-  (setq-default flycheck-shellcheck-excluded-warnings '()) ;; ignore POSIX warnings
   (setq no-dots-whitelist '("*Helm file completions*")) ;; show directory when selecting a directory
   (setq read-quoted-char-radix 16) ;; show unpritable chars in hex
   (setq helm-buffer-max-length 60) ;; max buffer column larger for helm
 
-  (with-eval-after-load "highlight-numbers"
-    (puthash
-     'spfspec-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]]*?\\|b[01]*?\\|o[0-7]*?\\|d[[:digit:]]*?\\)\\_>"
-     highlight-numbers-modelist))
+  (fset 'evil-visual-update-x-selection 'ignore) ;; don't update the primary when in evil
+  (define-key global-map (kbd "<S-down-mouse-1>") 'mouse-save-then-kill) ;; use shift-click to mark a region
+  (global-linum-mode) ; Show line numbers by default
 
   (push "/nfs/site/home/tjhinckl/personal/verilator-3.884/include" flycheck-clang-include-path)
-
-
-  (add-hook 'reglist-mode-hook 'color-identifiers-mode)
-  (with-eval-after-load "color-identifiers-mode"
-    (add-to-list
-     'color-identifiers:modes-alist
-     `(reglist-mode
-       . ("^[[:space:]]*[-.+]" "\\_<\\([[:alpha:]]+[[:alnum:]]*\\)\\_>"
-          (nil font-lock-keyword-face font-lock-function-name-face))))
-
-    (defun color-identifiers:colorize (limit)
-      (color-identifiers:scan-identifiers
-       (lambda (start end)
-         (let* ((identifier (buffer-substring-no-properties start end))
-                (hex (color-identifiers:color-identifier identifier)))
-           (when hex
-             (put-text-property start end 'face `(:foreground ,hex))
-             ;; (add-face-text-property start end '(:underline t))
-             (add-face-text-property start end '(:weight bold))
-             (put-text-property start end 'color-identifiers:fontified t))))
-       limit)))
-
 
   (add-hook 'focus-in-hook 'redraw-display) ;; display may be out of focus when switching workspaces
 
   ;; set arrow keys in isearch and evil search. up/down is history. press Return to exit
   (define-key isearch-mode-map (kbd "<up>") 'isearch-ring-retreat)
   (define-key isearch-mode-map (kbd "<down>") 'isearch-ring-advance)
-
-  ;; get around old magit git version problem
-  (setq magit-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git")
 
   (define-key evil-insert-state-map "\C-e" 'mwim-end-of-code-or-line);; make end-of-line work in insert
   (define-key evil-insert-state-map "\C-a" 'mwim-beginning-of-code-or-line);; make end-of-line work in insert
@@ -413,9 +441,8 @@ values."
   (spacemacs/set-leader-keys "wS" 'split-window-below)
   (spacemacs/set-leader-keys "wv" 'split-window-right-and-focus)
   (spacemacs/set-leader-keys "wV" 'split-window-right)
-  (add-hook 'emacs-lisp-mode-hook 'rainbow-mode)
-  (add-hook 'itpp-mode-hook (lambda () (highlight-numbers--turn-off)))
 
+  (add-hook 'emacs-lisp-mode-hook 'rainbow-mode)
 
   (spacemacs|define-transient-state imagex
     :title "Image Manipulation Transient State"
@@ -434,17 +461,8 @@ values."
   (when (configuration-layer/package-usedp 'smartparens)
     (sp-local-pair 'verilog-mode "'" nil :actions nil))
 
-  (setq-default visual-line-mode t) ;; cursor keys move by visual lines, not logical ones
 
   (setq git-gutter+-diff-options '("-w")) ;; ignore whitespace in gutter diffs
-
-  (push  "/usr/intel/pkgs/ImageMagick/6.8.9-1/bin" exec-path) ;; used for image manipulation
-
-  (push '(?\[ "[[{(]") evil-snipe-aliases)
-  (push '(?\] "[]})]") evil-snipe-aliases)
-  (setq-default evil-snipe-scope 'line)
-  (setq-default evil-snipe-repeat-scope 'line)
-  ;; (global-evil-mc-mode 1)
 
   (spacemacs/set-leader-keys-for-major-mode 'json-mode "p" 'jsons-print-path)
 
@@ -453,9 +471,7 @@ values."
   (with-eval-after-load 'yasnippet
     (setq yas-snippet-dirs (remq 'yas-installed-snippets-dir yas-snippet-dirs)))
 
-  (add-to-list 'load-path "~/.emacs.d/private/local/setup/")
-  (require 'function-setup)
-
+  (require 'private-functions)
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -467,7 +483,7 @@ values."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (pyenv-mode company-anaconda anaconda-mode yapfify pyvenv pytest py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode pythonic skewer-mode simple-httpd multiple-cursors js2-mode dash-functional tern anything perl-completion exec-path-from-shell evil-mc plsense yaxception org gitignore-mode fringe-helper git-gutter+ git-gutter magit magit-popup git-commit with-editor packed rainbow-mode rainbow-identifiers color-identifiers-mode python-mode vlf ox-gfm imenu-list flyspell-correct-helm flyspell-correct auto-dictionary eimp image+ graphviz-dot-mode org-projectile org-present org-pomodoro alert log4e gntp org-download htmlize gnuplot pos-tip flycheck company yasnippet auto-complete smart-tabs-mode xterm-color ws-butler window-numbering which-key wgrep web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package toc-org tabbar spacemacs-theme spaceline smex smeargle shell-pop restart-emacs ranger rainbow-delimiters quelpa popwin persp-mode pcre2el paradox orgit org-plus-contrib org-bullets open-junk-file neotree mwim multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint json-mode js2-refactor js-doc ivy-hydra info+ indent-guide ido-vertical-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-snipe evil-search-highlight-persist evil-numbers evil-nerd-commenter-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word dactyl-mode csv-mode counsel-projectile company-tern company-statistics company-shell column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+    (helm-perldoc deferred unfill json-snatcher json-reformat insert-shebang fuzzy disaster company-c-headers cmake-mode clang-format f s dash pyenv-mode company-anaconda anaconda-mode yapfify pyvenv pytest py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode pythonic skewer-mode simple-httpd multiple-cursors js2-mode dash-functional tern anything perl-completion exec-path-from-shell evil-mc plsense yaxception org gitignore-mode fringe-helper git-gutter+ git-gutter magit magit-popup git-commit with-editor packed rainbow-mode rainbow-identifiers color-identifiers-mode python-mode vlf ox-gfm imenu-list flyspell-correct-helm flyspell-correct auto-dictionary eimp image+ graphviz-dot-mode org-projectile org-present org-pomodoro alert log4e gntp org-download htmlize gnuplot pos-tip flycheck company yasnippet auto-complete smart-tabs-mode xterm-color ws-butler window-numbering which-key wgrep web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package toc-org tabbar spacemacs-theme spaceline smex smeargle shell-pop restart-emacs ranger rainbow-delimiters quelpa popwin persp-mode pcre2el paradox orgit org-plus-contrib org-bullets open-junk-file neotree mwim multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint json-mode js2-refactor js-doc ivy-hydra info+ indent-guide ido-vertical-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-snipe evil-search-highlight-persist evil-numbers evil-nerd-commenter-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word dactyl-mode csv-mode counsel-projectile company-tern company-statistics company-shell column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
  '(safe-local-variable-values
    (quote
     ((eval font-lock-add-keywords nil
