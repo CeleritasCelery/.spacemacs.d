@@ -6,8 +6,8 @@
         smartparens
         highlight-numbers
         flycheck
-        (perl-completion :toggle (configuration-layer/package-usedp 'auto-complete))
-        (anything :toggle (configuration-layer/package-usedp 'perl-completion))
+        ;; (perl-completion :toggle (configuration-layer/package-usedp 'auto-complete))
+        ;; (anything :toggle (configuration-layer/package-usedp 'perl-completion))
         ;; (plsense :toggle (configuration-layer/package-usedp 'auto-complete))
         ))
 
@@ -140,7 +140,7 @@
   (setenv "GLOBAL_TOOLS" "/nfs/site/proj/dpg/tools")
   (setenv "SPF_PERL_LIB" "/p/hdk/cad/spf/latest/lib/perl5")
   (setenv "XWEAVE_REPO_ROOT" "/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a")
-  (setq flycheck-perl-executable "/usr/intel/bin/perl")
+  (setq flycheck-perl-executable "/usr/intel/pkgs/perl/5.14.1/bin/perl")
   (push "/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5" flycheck-perl-include-path)
   (push "/p/hdk/cad/spf/latest/lib/perl5" flycheck-perl-include-path)
   (push "/nfs/site/proj/dpg/tools" flycheck-perl-include-path))
@@ -158,22 +158,22 @@
      'perl-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]]*?\\|b[01]*?\\|o[0-7]*?\\|d[[:digit:]]*?\\)\\_>"
      highlight-numbers-modelist)))
 
-(defun perl/init-anything ()
-  (use-package anything))
+;; (defun perl/init-anything ()
+;;   (use-package anything))
 
-(defun perl/init-perl-completion ()
-  (use-package perl-completion
-    :config
-    (progn
-      (setq plcmp-default-lighter  "")
-      (add-hook
-       'cperl-mode-hook
-       (lambda ()
-         (auto-complete-mode t)
-         (perl-completion-mode t)
-         (make-variable-buffer-local 'ac-sources)
-         (setq ac-sources
-               '(ac-source-perl-completion)))))))
+;; (defun perl/init-perl-completion ()
+;;   (use-package perl-completion
+;;     :config
+;;     (progn
+;;       (setq plcmp-default-lighter  "")
+;;       (add-hook
+;;        'cperl-mode-hook
+;;        (lambda ()
+;;          (auto-complete-mode t)
+;;          (perl-completion-mode t)
+;;          (make-variable-buffer-local 'ac-sources)
+;;          (setq ac-sources
+;;                '(ac-source-perl-completion)))))))
 
 ;; (defun perl/init-plsense ()
 ;;   (use-package plsense
