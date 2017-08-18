@@ -1,11 +1,12 @@
 ;; Layer by troy.j.hinckley@intel.com
-(setq perl-packages
+(defconst perl-packages
       '(
         (perl-mode :location built-in)
         (cperl-mode :location built-in)
         smartparens
         highlight-numbers
         flycheck
+        realgud
         ;; (perl-completion :toggle (configuration-layer/package-usedp 'auto-complete))
         ;; (anything :toggle (configuration-layer/package-usedp 'perl-completion))
         ;; (plsense :toggle (configuration-layer/package-usedp 'auto-complete))
@@ -54,7 +55,8 @@
     :mode "\\.\\(p[lm]x?\\|P[LM]X?\\)\\'"
     :interpreter "perl"
     :interpreter "perl5"
-
+    :init
+    (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "t" 'perl-perltidy-format)
     :config
     (progn
       (font-lock-remove-keywords
@@ -135,12 +137,12 @@
 
 (defun perl/post-init-flycheck ()
   (spacemacs/add-flycheck-hook 'cperl-mode)
-  (setq exec-path (append exec-path '("/usr/intel/pkgs/perl/5.14.1-threads/bin")))
   (setenv "SPF_ROOT" "/p/hdk/cad/spf/latest")
   (setenv "GLOBAL_TOOLS" "/nfs/site/proj/dpg/tools")
   (setenv "SPF_PERL_LIB" "/p/hdk/cad/spf/latest/lib/perl5")
   (setenv "XWEAVE_REPO_ROOT" "/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a")
   (setq flycheck-perl-executable "/usr/intel/pkgs/perl/5.14.1/bin/perl")
+  (setq flycheck-perl-perlcritic-executable "/usr/intel/pkgs/perl/5.14.1-threads/bin/perlcritic")
   (push "/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5" flycheck-perl-include-path)
   (push "/p/hdk/cad/spf/latest/lib/perl5" flycheck-perl-include-path)
   (push "/nfs/site/proj/dpg/tools" flycheck-perl-include-path))
@@ -157,6 +159,9 @@
     (puthash
      'perl-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]]*?\\|b[01]*?\\|o[0-7]*?\\|d[[:digit:]]*?\\)\\_>"
      highlight-numbers-modelist)))
+
+(defun perl/pre-init-realgud()
+  (spacemacs|add-realgud-debugger 'cperl-mode "trepan.pl"))
 
 ;; (defun perl/init-anything ()
 ;;   (use-package anything))
@@ -182,7 +187,6 @@
 ;;     (progn
 ;;       (setenv "PERL5LIB" "/nfs/site/home/tjhinckl/perl5/lib/perl5:/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5:/p/hdk/cad/spf/latest/lib/perl5:/nfs/site/proj/dpg/tools")
 ;;       (setenv "PATH" (concat (getenv "PATH") ":/nfs/site/home/tjhinckl/perl5/bin"))
-;;       (setq plsense--config-path "~/perl5/bin")
 ;;       (plsense-config-default)
 ;;       (spacemacs/set-leader-keys-for-major-mode 'cperl-mode
 ;;         "p" 'plsense-popup-help
