@@ -37,6 +37,9 @@ values."
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
      csv
+     python
+     debug
+     graphviz
      vimscript
      shell-scripts
      perl
@@ -70,6 +73,8 @@ values."
      eimp
      image+
      vlf
+     minimap
+     sublimity
      (itpp-mode    :location local)
      (reglist-mode :location local)
      (specman-mode :location local)
@@ -78,7 +83,7 @@ values."
      (functions    :location local)
      )
    ;; A list of packages that cannot be updated.
-   dotspacemacs-frozen-packages '()
+   dotspacemacs-frozen-packages '(org-projectile projectile)
    ;; A list of packages that will not be installed and loaded.
    dotspacemacs-excluded-packages '()
    ;; Defines the behaviour of Spacemacs when installing packages.
@@ -319,6 +324,8 @@ values."
   (add-to-list 'auto-mode-alist '("\\.vf\\'"           . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.hier\\'"         . verilog-mode))
   (add-to-list 'auto-mode-alist '("rc\\'"              . conf-unix-mode))
+  (add-to-list 'interpreter-mode-alist '("gmake"       . makefile-mode))
+
 
   ;; get around old magit git version problem
   (setq magit-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git")
@@ -333,6 +340,13 @@ values."
 ;; This is the place where most of your configurations should be done. Unless it is
 ;; explicitly specified that a variable should be set before a package is loaded,
 ;; you should place your code here."
+
+  ;; (add-to-list 'load-path "/nfs/site/home/tjhinckl/personal/github/emacs-pde/lisp/")
+  ;; (load "pde-load")
+  (require 'sublimity)
+  ;; (require 'sublimity-scroll)
+  (require 'sublimity-map) ;; experimental
+  ;; (require 'sublimity-attractive)
 
   (use-package spfspec-mode
     :defer t
@@ -389,13 +403,20 @@ values."
     :mode "\\.etst\\'"
     )
 
-  (setq-default tab-width 4) ;; You know what this means
+  (setq minimap-window-location 'right)
+  (setq minimap-enlarge-certain-faces 'always)
+  (setq minimap-width-fraction 0.1)
+
+  (setq-default tab-width 4) ;; colunms per "tab"
   (setq-default indent-tabs-mode nil) ;; use spaces instead of tabs by default
   (setq-default require-final-newline t) ;; always require a newline at end of the file for compatibility
   (setq-default visual-line-mode t) ;; cursor keys move by visual lines, not logical ones
   (setq-default evil-snipe-scope 'line) ;; snipe current line only
   (setq-default evil-snipe-repeat-scope 'line) ;; repeated snipes will stay on line
-  (setq mouse-drag-copy-region nil)  ; stops selection with a mouse being immediately injected to the kill ring
+  (setq evil-search-module 'evil-search) ;; use evil search so we can have very-magic mode enabled
+  (setq evil-magic 'very-magic) ;; very-magic mode matches perl regex syntax
+  (setq evil-ex-search-vim-style-regexp t) ;; translate vim escape characters to emacs regex
+  (setq mouse-drag-copy-region nil) ;; stops selection with a mouse being immediately injected to the kill ring
   (setq select-enable-clipboard t) ;; tell emacs to use the system clipboard ...
   (setq select-enable-primary nil) ;; and don't use the primary
   (setq interprogram-paste-function 'x-cut-buffer-or-selection-value) ;; make inter-program paste work correctly
@@ -413,13 +434,21 @@ values."
   (define-key global-map (kbd "<S-down-mouse-1>") 'mouse-save-then-kill) ;; use shift-click to mark a region
   (global-linum-mode) ; Show line numbers by default
 
+  ;; C-i can be used to move forward in cursor jumps, but
+  ;; Emacs binds it to TAB, so we rebinding it to H-i. Though
+  ;; this probably won't work in the terminal
+  (define-key input-decode-map (kbd "C-i") (kbd "H-i"))
+  (global-set-key (kbd "H-i") 'evil-jump-forward)
+
   (push "/nfs/site/home/tjhinckl/personal/verilator-3.884/include" flycheck-clang-include-path)
+
+  (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p nil t) ;; make scripts executable on save
 
   (add-hook 'focus-in-hook 'redraw-display) ;; display may be out of focus when switching workspaces
 
   ;; set arrow keys in isearch and evil search. up/down is history. press Return to exit
-  (define-key isearch-mode-map (kbd "<up>") 'isearch-ring-retreat)
-  (define-key isearch-mode-map (kbd "<down>") 'isearch-ring-advance)
+  ;; (define-key isearch-mode-map (kbd "<up>") 'isearch-ring-retreat)
+  ;; (define-key isearch-mode-map (kbd "<down>") 'isearch-ring-advance)
 
   (define-key evil-insert-state-map "\C-e" 'mwim-end-of-code-or-line);; make end-of-line work in insert
   (define-key evil-insert-state-map "\C-a" 'mwim-beginning-of-code-or-line);; make end-of-line work in insert
@@ -461,7 +490,6 @@ values."
   (when (configuration-layer/package-usedp 'smartparens)
     (sp-local-pair 'verilog-mode "'" nil :actions nil))
 
-
   (setq git-gutter+-diff-options '("-w")) ;; ignore whitespace in gutter diffs
 
   (spacemacs/set-leader-keys-for-major-mode 'json-mode "p" 'jsons-print-path)
@@ -481,9 +509,10 @@ values."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(magit-diff-section-arguments (quote ("--no-ext-diff")))
  '(package-selected-packages
    (quote
-    (winum powerline spinner hydra parent-mode hide-comnt projectile request pkg-info epl flx evil-nerd-commenter smartparens iedit anzu evil goto-chg undo-tree highlight diminish bind-map bind-key helm avy helm-core async popup helm-perldoc deferred unfill json-snatcher json-reformat insert-shebang fuzzy disaster company-c-headers cmake-mode clang-format f s dash pyenv-mode company-anaconda anaconda-mode yapfify pyvenv pytest py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode pythonic skewer-mode simple-httpd multiple-cursors js2-mode dash-functional tern anything perl-completion exec-path-from-shell evil-mc plsense yaxception org gitignore-mode fringe-helper git-gutter+ git-gutter magit magit-popup git-commit with-editor packed rainbow-mode rainbow-identifiers color-identifiers-mode python-mode vlf ox-gfm imenu-list flyspell-correct-helm flyspell-correct auto-dictionary eimp image+ graphviz-dot-mode org-projectile org-present org-pomodoro alert log4e gntp org-download htmlize gnuplot pos-tip flycheck company yasnippet auto-complete smart-tabs-mode xterm-color ws-butler window-numbering which-key wgrep web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package toc-org tabbar spacemacs-theme spaceline smex smeargle shell-pop restart-emacs ranger rainbow-delimiters quelpa popwin persp-mode pcre2el paradox orgit org-plus-contrib org-bullets open-junk-file neotree mwim multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint json-mode js2-refactor js-doc ivy-hydra info+ indent-guide ido-vertical-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-snipe evil-search-highlight-persist evil-numbers evil-nerd-commenter-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word dactyl-mode csv-mode counsel-projectile company-tern company-statistics company-shell column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+    (sublimity minimap realgud-pry realgud test-simple loc-changes load-relative winum powerline spinner hydra parent-mode hide-comnt projectile request pkg-info epl flx evil-nerd-commenter smartparens iedit anzu evil goto-chg undo-tree highlight diminish bind-map bind-key helm avy helm-core async popup helm-perldoc deferred unfill json-snatcher json-reformat insert-shebang fuzzy disaster company-c-headers cmake-mode clang-format f s dash pyenv-mode company-anaconda anaconda-mode yapfify pyvenv pytest py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode pythonic skewer-mode simple-httpd multiple-cursors js2-mode dash-functional tern anything perl-completion exec-path-from-shell evil-mc plsense yaxception org gitignore-mode fringe-helper git-gutter+ git-gutter magit magit-popup git-commit with-editor packed rainbow-mode rainbow-identifiers color-identifiers-mode python-mode vlf ox-gfm imenu-list flyspell-correct-helm flyspell-correct auto-dictionary eimp image+ graphviz-dot-mode org-projectile org-present org-pomodoro alert log4e gntp org-download htmlize gnuplot pos-tip flycheck company yasnippet auto-complete smart-tabs-mode xterm-color ws-butler window-numbering which-key wgrep web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package toc-org tabbar spacemacs-theme spaceline smex smeargle shell-pop restart-emacs ranger rainbow-delimiters quelpa popwin persp-mode pcre2el paradox orgit org-plus-contrib org-bullets open-junk-file neotree mwim multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint json-mode js2-refactor js-doc ivy-hydra info+ indent-guide ido-vertical-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-snipe evil-search-highlight-persist evil-numbers evil-nerd-commenter-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word dactyl-mode csv-mode counsel-projectile company-tern company-statistics company-shell column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
  '(safe-local-variable-values
    (quote
     ((eval font-lock-add-keywords nil
@@ -514,4 +543,6 @@ values."
  '(ediff-fine-diff-C ((t (:background "#293235" :foreground "#67b11d"))))
  '(ediff-odd-diff-A ((t (:background "#454242" :foreground "Gray70"))))
  '(ediff-odd-diff-B ((t (:background "#454242" :foreground "Gray70"))))
- '(ediff-odd-diff-C ((t (:background "#454242" :foreground "Gray70")))))
+ '(ediff-odd-diff-C ((t (:background "#454242" :foreground "Gray70"))))
+ '(minimap-active-region-background ((t :inherit highlight)))
+ '(minimap-font-face ((t (:height 20 :family "DejaVu Sans Mono")))))

@@ -11,3 +11,6 @@
 
 (spacemacs|define-jump-handlers cperl-mode)
 (spacemacs|define-jump-handlers perl-mode)
+
+(defvar perl5-perltidy-executable "perltidy"
+  "*Program name of perltidy")
