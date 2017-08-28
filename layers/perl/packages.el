@@ -32,12 +32,14 @@
       ;; correct for Intel-style binary and hex notation
       (defalias 'my/perl-syntax-propertize-function
         (syntax-propertize-rules
-         ("\\('\\)FILL:[0-9a-fA-FXZLH]+" (1 ".")) ;; FILL
-         ("\\('\\)DEFAULT\\([]}),;[:space:]]\\|$\\)" (1 ".")) ;; DEFAULT
-         ("\\('b\\)\\([01XZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)"        (1 "."))   ;; binary
-         ("\\('o\\)\\([0-7XZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)"       (1 "."))   ;; octal
-         ("\\('d\\)\\([0-9XZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)"       (1 "."))   ;; decimal
-         ("\\('h\\)\\([0-9a-fA-FXZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)" (1 ".")))) ;; hex
+         ("\\('\\)" (1 "."))
+         ;; ("\\('\\)FILL:[0-9a-fA-FXZLH]+" (1 ".")) ;; FILL
+         ;; ("\\('\\)DEFAULT\\([]}),;[:space:]]\\|$\\)" (1 ".")) ;; DEFAULT
+         ;; ("\\('b\\)\\([01XZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)"        (1 "."))   ;; binary
+         ;; ("\\('o\\)\\([0-7XZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)"       (1 "."))   ;; octal
+         ;; ("\\('d\\)\\([0-9XZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)"       (1 "."))   ;; decimal
+         ;; ("\\('h\\)\\([0-9a-fA-FXZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)" (1 "."))
+         )) ;; hex
 
       (add-hook 'perl-mode-hook
                 (lambda ()
@@ -157,7 +159,7 @@
 (defun perl/post-init-highlight-numbers ()
   (with-eval-after-load "highlight-numbers"
     (puthash
-     'perl-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]]*?\\|b[01]*?\\|o[0-7]*?\\|d[[:digit:]]*?\\)\\_>"
+     'perl-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]xX]*?\\|b[01xX]*?\\|o[0-7xX]*?\\|d[[:digit:]xX]*?\\)\\_>"
      highlight-numbers-modelist)))
 
 (defun perl/pre-init-realgud()
