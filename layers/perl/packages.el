@@ -1,16 +1,17 @@
 ;; Layer by troy.j.hinckley@intel.com
 (defconst perl-packages
-      '(
-        (perl-mode :location built-in)
-        (cperl-mode :location built-in)
-        smartparens
-        highlight-numbers
-        flycheck
-        realgud
-        ;; (perl-completion :toggle (configuration-layer/package-usedp 'auto-complete))
-        ;; (anything :toggle (configuration-layer/package-usedp 'perl-completion))
-        ;; (plsense :toggle (configuration-layer/package-usedp 'auto-complete))
-        ))
+  '(
+    (perl-mode :location built-in)
+    (cperl-mode :location built-in)
+    smartparens
+    highlight-numbers
+    flycheck
+    realgud
+    ;; (company-plsense :location local)
+    ;; (perl-completion :toggle (configuration-layer/package-usedp 'auto-complete))
+    ;; (anything :toggle (configuration-layer/package-usedp 'perl-completion))
+    ;; (plsense :toggle (configuration-layer/package-usedp 'auto-complete))
+    ))
 
 (defun perl/init-perl-mode ()
   "Perl mode init function."
@@ -32,20 +33,13 @@
       ;; correct for Intel-style binary and hex notation
       (defalias 'my/perl-syntax-propertize-function
         (syntax-propertize-rules
-         ("\\('\\)" (1 "."))
-         ;; ("\\('\\)FILL:[0-9a-fA-FXZLH]+" (1 ".")) ;; FILL
-         ;; ("\\('\\)DEFAULT\\([]}),;[:space:]]\\|$\\)" (1 ".")) ;; DEFAULT
-         ;; ("\\('b\\)\\([01XZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)"        (1 "."))   ;; binary
-         ;; ("\\('o\\)\\([0-7XZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)"       (1 "."))   ;; octal
-         ;; ("\\('d\\)\\([0-9XZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)"       (1 "."))   ;; decimal
-         ;; ("\\('h\\)\\([0-9a-fA-FXZLH]+\\|[$][a-zA-Z_\\{][a-zA-Z0-9_]*\\)\\([]}),;[:space:]]\\|$\\)" (1 "."))
-         )) ;; hex
+         ("\\('\\)" (1 "."))))
 
       (add-hook 'perl-mode-hook
                 (lambda ()
                   (add-function :before (local 'syntax-propertize-function)
                                 #'my/perl-syntax-propertize-function)))
-
+      (add-hook 'perl-mode-hook #'prettify-symbols-mode)
       (font-lock-add-keywords
        'perl-mode
        '(("\\<repeat\\>" . font-lock-type-face)
@@ -58,7 +52,13 @@
     :interpreter "perl"
     :interpreter "perl5"
     :init
-    (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "t" 'perl-perltidy-format)
+    (defconst cperl--prettify-symbols-alist
+      '(("->" . ?→)
+        ("=>" . ?⇒)
+        ("<=" . ?≤)
+        (">=" . ?≥)
+        ("::" . ?∷)))
+
     :config
     (progn
       (font-lock-remove-keywords
@@ -113,10 +113,13 @@
       ;; tab key will ident all marked code when tab key is pressed
       (add-hook 'cperl-mode-hook
                 (lambda () (local-set-key (kbd "<tab>") 'indent-for-tab-command)))
+      (add-hook 'cperl-mode-hook (lambda () (progn (modify-syntax-entry ?: "." (syntax-table))
+                                              (setq prettify-symbols-alist cperl--prettify-symbols-alist)
+                                              (prettify-symbols-mode))))
 
       ;; Use less horrible colors for cperl arrays and hashes
-      (set-face-attribute 'cperl-array-face nil :foreground  "#DD7D0A"    :background  'unspecified :weight 'unspecified)
-      (set-face-attribute 'cperl-hash-face nil  :foreground  "OrangeRed3" :background  'unspecified :weight 'unspecified)
+      (set-face-attribute 'cperl-array-face nil :foreground  "#DD7D0A"    :background 'unspecified :weight 'unspecified)
+      (set-face-attribute 'cperl-hash-face nil  :foreground  "OrangeRed3" :background 'unspecified :weight 'unspecified)
       (setq cperl-highlight-variables-indiscriminately t)
 
       ;; cperl default settings
@@ -128,6 +131,7 @@
       (spacemacs/declare-prefix "mh" "perldoc")
       (spacemacs/declare-prefix "mg" "find-symbol")
       (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "hp" 'cperl-perldoc-at-point)
+      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "=" 'spacemacs/perltidy-format)
       (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "hd" 'cperl-perldoc)
       (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "v" 'cperl-select-this-pod-or-here-doc)
 
@@ -145,9 +149,11 @@
   (setenv "XWEAVE_REPO_ROOT" "/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a")
   (setq flycheck-perl-executable "/usr/intel/pkgs/perl/5.14.1/bin/perl")
   (setq flycheck-perl-perlcritic-executable "/usr/intel/pkgs/perl/5.14.1-threads/bin/perlcritic")
-  (push "/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5" flycheck-perl-include-path)
-  (push "/p/hdk/cad/spf/latest/lib/perl5" flycheck-perl-include-path)
-  (push "/nfs/site/proj/dpg/tools" flycheck-perl-include-path))
+  (dolist (path '("/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5"
+                  "/p/hdk/rtl/ip_releases/shdk74/chassis_dft_val_global/v17ww37d/scripts"
+                  "/p/hdk/cad/spf/latest/lib/perl5"
+                  "/nfs/site/proj/dpg/tools"))
+    (add-to-list 'flycheck-perl-include-path path)))
 
 (defun perl/post-init-smartparens ()
   (sp-local-pair 'perl-mode "'" nil :actions nil)
@@ -163,7 +169,16 @@
      highlight-numbers-modelist)))
 
 (defun perl/pre-init-realgud()
-  (spacemacs|add-realgud-debugger 'cperl-mode "trepan.pl"))
+  (spacemacs//add-realgud-debugger 'cperl-mode "trepan.pl"))
+
+;; (defun perl/init-company-plsense()
+;;   (use-package company-plsense
+;;     :init
+;;     (setq company-plsense-enabled-modes '(cperl-mode))
+;;     (setenv "PERL5LIB" "/nfs/site/home/tjhinckl/perl5/lib/perl5:/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5:/p/hdk/cad/spf/latest/lib/perl5:/nfs/site/proj/dpg/tools")
+;;     :config
+;;     (company-plsense-setup)))
+
 
 ;; (defun perl/init-anything ()
 ;;   (use-package anything))

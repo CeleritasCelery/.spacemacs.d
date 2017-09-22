@@ -31,12 +31,12 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
-     markdown
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
+     markdown
      csv
      python
      debug
@@ -49,9 +49,10 @@ values."
      tmux
      imenu-list
      syntax-checking
-    (auto-completion :variables
-                     auto-completion-enable-snippets-in-popup t)
+     (auto-completion :variables
+                      auto-completion-enable-snippets-in-popup t)
      better-defaults
+     evil-cleverparens
      ranger
      emacs-lisp
      git
@@ -74,8 +75,6 @@ values."
      eimp
      image+
      vlf
-     minimap
-     sublimity
      (itpp-mode    :location local)
      (reglist-mode :location local)
      (specman-mode :location local)
@@ -94,7 +93,7 @@ values."
    ;; `used-but-keep-unused' installs only the used packages but won't uninstall
    ;; them if they become unused. `all' installs *all* packages supported by
    ;; Spacemacs and never uninstall them. (default is `used-only')
-   dotspacemacs-install-packages 'used-only))
+   dotspacemacs-install-packages 'used-but-keep-unused))
 
 (defun dotspacemacs/init ()
   "Initialization function.
@@ -158,12 +157,7 @@ values."
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
-   dotspacemacs-default-font '("Source Code Pro"
-                               :size 11
-                               :weight normal
-                               :width normal
-                               :powerline-scale 1.1)
-
+   dotspacemacs-default-font '("Source Code Pro" :size 11 :powerline-scale 1.1)
    ;; The leader key
    dotspacemacs-leader-key "SPC"
    ;; The key used for Emacs commands (M-x) (after pressing on the leader key).
@@ -282,7 +276,7 @@ values."
    dotspacemacs-folding-method 'evil
    ;; If non-nil smartparens-strict-mode will be enabled in programming modes.
    ;; (default nil)
-   dotspacemacs-smartparens-strict-mode nil
+   dotspacemacs-smartparens-strict-mode t
    ;; If non-nil pressing the closing parenthesis `)' key in insert mode passes
    ;; over any automatically added closing parenthesis, bracket, quote, etc…
    ;; This can be temporary disabled by pressing `C-q' before `)'. (default nil)
@@ -311,51 +305,50 @@ values."
    ))
 
 (defun dotspacemacs/user-init ()
-;;   "Initialization function for user code.
-;; It is called immediately after `dotspacemacs/init', before layer configuration
-;; executes.
-;;  This function is mostly useful for variables that need to be set
-;; before packages are loaded. If you are unsure, you should try in setting them in
-;; `dotspacemacs/user-config' first."
+  ;;   "Initialization function for user code.
+  ;; It is called immediately after `dotspacemacs/init', before layer configuration
+  ;; executes.
+  ;;  This function is mostly useful for variables that need to be set
+  ;; before packages are loaded. If you are unsure, you should try in setting them in
+  ;; `dotspacemacs/user-config' first."
 
-  (add-to-list 'auto-mode-alist '("\\.summary\\'"      . ruby-mode))
-  (add-to-list 'auto-mode-alist '("\\.do\\'"           . tcl-mode))
-  (add-to-list 'auto-mode-alist '("\\.vs\\'"           . verilog-mode))
-  (add-to-list 'auto-mode-alist '("\\.svh\\'"          . verilog-mode))
-  (add-to-list 'auto-mode-alist '("\\.vf\\'"           . verilog-mode))
-  (add-to-list 'auto-mode-alist '("\\.hier\\'"         . verilog-mode))
-  (add-to-list 'auto-mode-alist '("rc\\'"              . conf-unix-mode))
-  (add-to-list 'interpreter-mode-alist '("gmake"       . makefile-mode))
-
+  (add-to-list 'auto-mode-alist '("\\.summary\\'" . ruby-mode))
+  (add-to-list 'auto-mode-alist '("\\.do\\'"      . tcl-mode))
+  (add-to-list 'auto-mode-alist '("\\.vs\\'"      . verilog-mode))
+  (add-to-list 'auto-mode-alist '("\\.svh\\'"     . verilog-mode))
+  (add-to-list 'auto-mode-alist '("\\.vf\\'"      . verilog-mode))
+  (add-to-list 'auto-mode-alist '("\\.hier\\'"    . verilog-mode))
+  (add-to-list 'auto-mode-alist '("rc\\'"         . conf-unix-mode))
+  (add-to-list 'interpreter-mode-alist '("gmake"  . makefile-mode))
 
   ;; get around old magit git version problem
   (setq magit-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git")
+  (setq git-gutter+-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git")
   (setq evil-want-abbrev-expand-on-insert-exit nil) ;; don't preform an abbrev expansion on insert state exit
+  (setq exec-path-from-shell-check-startup-files nil)
 
   )
 
 (defun dotspacemacs/user-config ()
-;;   "Configuration function for user code.
-;; This function is called at the very end of Spacemacs initialization after
-;; layers configuration.
-;; This is the place where most of your configurations should be done. Unless it is
-;; explicitly specified that a variable should be set before a package is loaded,
-;; you should place your code here."
+  ;;   "Configuration function for user code.
+  ;; This function is called at the very end of Spacemacs initialization after
+  ;; layers configuration.
+  ;; This is the place where most of your configurations should be done. Unless it is
+  ;; explicitly specified that a variable should be set before a package is loaded,
+  ;; you should place your code here."
 
-  ;; (add-to-list 'load-path "/nfs/site/home/tjhinckl/personal/github/emacs-pde/lisp/")
+  (defconst lisp--prettify-symbols-alist
+    '(("lambda" . ?λ)   ; Shrink this
+      ("."      . ?•))) ; Enlarge this
+  (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
+  (add-hook 'emacs-lisp-mode-hook 'aggressive-indent-mode)
+  (spacemacs|diminish orgtbl-mode)
+
   (add-to-list 'load-path "/nfs/site/home/tjhinckl/personal/github/company-plsense/")
+  (setenv "PERL5LIB" "/nfs/site/home/tjhinckl/perl5/lib/perl5:/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5:/p/hdk/cad/spf/latest/lib/perl5:/nfs/site/proj/dpg/tools")
   (require 'company-plsense)
+  (setq company-plsense-enabled-modes '(cperl-mode))
   (company-plsense-setup)
-
-  ;; (add-to-list 'load-path "/nfs/site/home/tjhinckl/scripts/")
-  ;; (require 'company-test)
-  ;; (add-to-list 'company-backends 'company-test)
-
-  ;; (load "pde-load")
-  (require 'sublimity)
-  ;; (require 'sublimity-scroll)
-  (require 'sublimity-map) ;; experimental
-  ;; (require 'sublimity-attractive)
 
   (use-package spfspec-mode
     :mode "\\.spfspec\\'"
@@ -432,6 +425,8 @@ values."
   (setq no-dots-whitelist '("*Helm file completions*")) ;; show directory when selecting a directory
   (setq read-quoted-char-radix 16) ;; show unpritable chars in hex
   (setq helm-buffer-max-length 60) ;; max buffer column larger for helm
+  (setq perl5-perltidy-executable "/nfs/site/home/tjhinckl/perl5/bin/perltidy")
+  (add-hook 'emacs-lisp-mode-hook 'evil-cleverparens-mode)
 
   (fset 'evil-visual-update-x-selection 'ignore) ;; don't update the primary when in evil
   (define-key global-map (kbd "<S-down-mouse-1>") 'mouse-save-then-kill) ;; use shift-click to mark a region
@@ -442,7 +437,6 @@ values."
   ;; this probably won't work in the terminal
   (define-key input-decode-map (kbd "C-i") (kbd "H-i"))
   (global-set-key (kbd "H-i") 'evil-jump-forward)
-
   (push "/nfs/site/home/tjhinckl/personal/verilator-3.884/include" flycheck-clang-include-path)
 
   (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p nil t) ;; make scripts executable on save
@@ -499,11 +493,9 @@ values."
 
   (spacemacs/add-flycheck-hook 'verilog-mode)
 
-  (with-eval-after-load 'yasnippet
-    (setq yas-snippet-dirs (remq 'yas-installed-snippets-dir yas-snippet-dirs)))
-
   (require 'private-functions)
-)
+
+  )
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
@@ -515,7 +507,7 @@ values."
  '(magit-diff-section-arguments (quote ("--no-ext-diff")))
  '(package-selected-packages
    (quote
-    (mmm-mode markdown-toc markdown-mode gh-md stickyfunc-enhance srefactor sublimity minimap realgud-pry realgud test-simple loc-changes load-relative winum powerline spinner hydra parent-mode hide-comnt projectile request pkg-info epl flx evil-nerd-commenter smartparens iedit anzu evil goto-chg undo-tree highlight diminish bind-map bind-key helm avy helm-core async popup helm-perldoc deferred unfill json-snatcher json-reformat insert-shebang fuzzy disaster company-c-headers cmake-mode clang-format f s dash pyenv-mode company-anaconda anaconda-mode yapfify pyvenv pytest py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode pythonic skewer-mode simple-httpd multiple-cursors js2-mode dash-functional tern anything perl-completion exec-path-from-shell evil-mc plsense yaxception org gitignore-mode fringe-helper git-gutter+ git-gutter magit magit-popup git-commit with-editor packed rainbow-mode rainbow-identifiers color-identifiers-mode python-mode vlf ox-gfm imenu-list flyspell-correct-helm flyspell-correct auto-dictionary eimp image+ graphviz-dot-mode org-projectile org-present org-pomodoro alert log4e gntp org-download htmlize gnuplot pos-tip flycheck company yasnippet auto-complete smart-tabs-mode xterm-color ws-butler window-numbering which-key wgrep web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package toc-org tabbar spacemacs-theme spaceline smex smeargle shell-pop restart-emacs ranger rainbow-delimiters quelpa popwin persp-mode pcre2el paradox orgit org-plus-contrib org-bullets open-junk-file neotree mwim multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint json-mode js2-refactor js-doc ivy-hydra info+ indent-guide ido-vertical-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-snipe evil-search-highlight-persist evil-numbers evil-nerd-commenter-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word dactyl-mode csv-mode counsel-projectile company-tern company-statistics company-shell column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+    (eros evil-cleverparens paredit mmm-mode markdown-toc markdown-mode gh-md stickyfunc-enhance srefactor sublimity minimap realgud-pry realgud test-simple loc-changes load-relative winum powerline spinner hydra parent-mode hide-comnt projectile request pkg-info epl flx evil-nerd-commenter smartparens iedit anzu evil goto-chg undo-tree highlight diminish bind-map bind-key helm avy helm-core async popup helm-perldoc deferred unfill json-snatcher json-reformat insert-shebang fuzzy disaster company-c-headers cmake-mode clang-format f s dash pyenv-mode company-anaconda anaconda-mode yapfify pyvenv pytest py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode pythonic skewer-mode simple-httpd multiple-cursors js2-mode dash-functional tern anything perl-completion exec-path-from-shell evil-mc plsense yaxception org gitignore-mode fringe-helper git-gutter+ git-gutter magit magit-popup git-commit with-editor packed rainbow-mode rainbow-identifiers color-identifiers-mode python-mode vlf ox-gfm imenu-list flyspell-correct-helm flyspell-correct auto-dictionary eimp image+ graphviz-dot-mode org-projectile org-present org-pomodoro alert log4e gntp org-download htmlize gnuplot pos-tip flycheck company yasnippet auto-complete smart-tabs-mode xterm-color ws-butler window-numbering which-key wgrep web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package toc-org tabbar spacemacs-theme spaceline smex smeargle shell-pop restart-emacs ranger rainbow-delimiters quelpa popwin persp-mode pcre2el paradox orgit org-plus-contrib org-bullets open-junk-file neotree mwim multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint json-mode js2-refactor js-doc ivy-hydra info+ indent-guide ido-vertical-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-snipe evil-search-highlight-persist evil-numbers evil-nerd-commenter-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word dactyl-mode csv-mode counsel-projectile company-tern company-statistics company-shell column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
  '(safe-local-variable-values
    (quote
     ((eval font-lock-add-keywords nil

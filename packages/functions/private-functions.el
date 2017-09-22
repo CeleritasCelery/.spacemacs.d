@@ -62,10 +62,6 @@
 		   (message "tab-mode disabled for buffer"))))
 (spacemacs/set-leader-keys "tt" 'tab-mode) ;; switch between tabs and spaces
 
-(fset 'git-resolve-list
-	  [?q ?y ?y ?  ?b ?d ?d ?d ?  ?f ?s ?g ?f return ?  ?  ?m ?a ?g ?i ?t ?- ?e ?d ?i ?f ?f ?- ?r ?e ?s ?o ?l ?v ?e return return])
-(spacemacs/set-leader-keys "or" 'git-resolve-list) ;; open magit resolve for next file in list
-
 (defun my/evil-next-line (orig-fun &rest args)
   "check to see if we are in visual line mode"
   (if visual-line-mode
@@ -80,10 +76,24 @@
 	(apply orig-fun args)))
 (advice-add 'evil-previous-line :around 'my/evil-previous-line)
 
+(require 's)
 (defun my/open-file-in-clipboard ()
   (interactive)
-  (helm-find-files-1 (substring-no-properties (current-kill 0))))
-(spacemacs/set-leader-keys "oc" #'my/open-file-in-clipboard) ;; open magit resolve for next file in list
+  (helm-find-files-1 (replace-regexp-in-string "\\s-+" "" (substring-no-properties (current-kill 0)))))
+(spacemacs/set-leader-keys "of" #'my/open-file-in-clipboard)
+
+(defun my/window-large ()
+  (interactive)
+  (shell-command "xrandr -s 1920x1200"))
+
+(defun my/window-mobile ()
+  (interactive)
+  (shell-command "xrandr -s 1536x864"))
+
+(defun my/window-wide ()
+  (interactive)
+  (shell-command "xrandr -s 1920x1080"))
+
 
 (require 'calc-bin) ;; converting radicies
 (require 'calc-ext) ;; big numbers
@@ -217,68 +227,6 @@
   (if messages-auto-scroll-mode
       (advice-add 'message :after #'messages-auto-tail)
     (advice-remove 'message #'messages-auto-tail)))
-
-(defun workspace-0 ()
-  "switch to eyebrowse workspace 0"
-  (interactive)
-  (eyebrowse-switch-to-window-config-0))
-
-(defun workspace-1 ()
-  "switch to eyebrowse workspace 1"
-  (interactive)
-  (eyebrowse-switch-to-window-config-1))
-
-(defun workspace-2 ()
-  "switch to eyebrowse workspace 2"
-  (interactive)
-  (eyebrowse-switch-to-window-config-2))
-
-(defun workspace-3 ()
-  "switch to eyebrowse workspace 3"
-  (interactive)
-  (eyebrowse-switch-to-window-config-3))
-
-(defun workspace-4 ()
-  "switch to eyebrowse workspace 4"
-  (interactive)
-  (eyebrowse-switch-to-window-config-4))
-
-(defun workspace-5 ()
-  "switch to eyebrowse workspace 5"
-  (interactive)
-  (eyebrowse-switch-to-window-config-5))
-
-(defun workspace-6 ()
-  "switch to eyebrowse workspace 6"
-  (interactive)
-  (eyebrowse-switch-to-window-config-6))
-
-(defun workspace-7 ()
-  "switch to eyebrowse workspace 7"
-  (interactive)
-  (eyebrowse-switch-to-window-config-7))
-
-(defun workspace-8 ()
-  "switch to eyebrowse workspace 8"
-  (interactive)
-  (eyebrowse-switch-to-window-config-8))
-
-(defun workspace-9 ()
-  "switch to eyebrowse workspace 9"
-  (interactive)
-  (eyebrowse-switch-to-window-config-9))
-
-(spacemacs/set-leader-keys
-  "w0" 'workspace-0
-  "w1" 'workspace-1
-  "w2" 'workspace-2
-  "w3" 'workspace-3
-  "w4" 'workspace-4
-  "w5" 'workspace-5
-  "w6" 'workspace-6
-  "w7" 'workspace-7
-  "w8" 'workspace-8
-  "w9" 'workspace-9)
 
 (provide 'private-functions)
 

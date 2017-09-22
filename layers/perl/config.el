@@ -13,4 +13,7 @@
 (spacemacs|define-jump-handlers perl-mode)
 
 (defvar perl5-perltidy-executable "perltidy"
-  "*Program name of perltidy")
+  "Program name of perltidy")
+
+(defvar perl5-perltidy-options '()
+  "Command line options to pass to perltidy")
