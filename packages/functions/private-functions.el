@@ -1,3 +1,5 @@
+;; a collection of functions I wrote to assist in coding
+
 (defun highlight-lines ()
   (interactive)
   (set-face-attribute 'highlight nil :background "#293235" :foreground "#67b11d") ;; green
@@ -60,26 +62,6 @@
 		   (message "tab-mode disabled for buffer"))))
 (spacemacs/set-leader-keys "tt" 'tab-mode) ;; switch between tabs and spaces
 
-(fset 'git-resolve-list
-	  [?q ?y ?y ?  ?b ?d ?d ?d ?  ?f ?s ?g ?f return ?  ?  ?m ?a ?g ?i ?t ?- ?e ?d ?i ?f ?f ?- ?r ?e ?s ?o ?l ?v ?e return return])
-(spacemacs/set-leader-keys "or" 'git-resolve-list) ;; open magit resolve for next file in list
-
-(fset 'git-diff-buffer
-	  [?  ?f ?y ?\M-x ?m ?a ?g ?i ?t ?- ?d ?i ?f ?f ?- ?p ?o ?p ?u ?p return ?= ?f ?= ?f C-S-backspace ?\C-y return])
-(spacemacs/set-leader-keys "og" 'git-diff-buffer) ;; open magit diff prompt for current file
-(spacemacs/set-leader-keys "od" 'git-ediff-buffer) ;; open magit ediff prompt for current file
-
-(with-eval-after-load "persp-mode"
-  (defun persp-remove-killed-buffers ()
-	(interactive)
-	(mapc #'(lambda (p)
-			  (when p
-				(setf (persp-buffers p)
-					  (delete-if-not #'buffer-live-p
-									 (persp-buffers p)))))
-		  (persp-persps)))
-  )
-
 (defun my/evil-next-line (orig-fun &rest args)
   "check to see if we are in visual line mode"
   (if visual-line-mode
@@ -94,26 +76,24 @@
 	(apply orig-fun args)))
 (advice-add 'evil-previous-line :around 'my/evil-previous-line)
 
-;; (define-key evil-motion-state-map "j" 'evil-next-line)
-;; (define-key evil-motion-state-map "k" 'evil-previous-line)
-;; (define-key evil-operator-state-map "j" 'evil-next-line)
-;; (define-key evil-operator-state-map "k" 'evil-previous-line)
-;; (define-key evil-normal-state-map "j" 'evil-next-visual-line)
-;; (define-key evil-normal-state-map "k" 'evil-previous-visual-line)
+(require 's)
+(defun my/open-file-in-clipboard ()
+  (interactive)
+  (helm-find-files-1 (replace-regexp-in-string "\\s-+" "" (substring-no-properties (current-kill 0)))))
+(spacemacs/set-leader-keys "of" #'my/open-file-in-clipboard)
 
-;; (evil-define-motion my/evil-next-line (count)
-;;   :type line
-;;   (let ((command (if count 'evil-next-line 'evil-next-visual-line)))
-;;     (funcall command (prefix-numeric-value count))))
+(defun my/window-large ()
+  (interactive)
+  (shell-command "xrandr -s 1920x1200"))
 
-;; (define-key evil-motion-state-map (kbd "j") 'my/evil-next-line)
+(defun my/window-mobile ()
+  (interactive)
+  (shell-command "xrandr -s 1536x864"))
 
-;; (evil-define-motion my/evil-previous-line (count)
-;;   :type line
-;;   (let ((command (if count 'evil-previous-line 'evil-previous-visual-line)))
-;;     (funcall command (prefix-numeric-value count))))
+(defun my/window-wide ()
+  (interactive)
+  (shell-command "xrandr -s 1920x1080"))
 
-;; (define-key evil-motion-state-map (kbd "k") 'my/evil-previous-line)
 
 (require 'calc-bin) ;; converting radicies
 (require 'calc-ext) ;; big numbers
@@ -155,14 +135,6 @@
                  (kill-new (math-format-radix (string-to-number numStr 16))))))))
 (spacemacs/set-leader-keys "oc" 'convert-hex-binary)
 
-
-;; (defun reglist-rainbow-identifiers-filter (beg end)
-;;   "only color directives"
-;;   (save-excursion
-;;     (goto-char beg)
-;;     (string-match
-;;      "^[[:space:]]*[-.+]$"
-;;      (buffer-substring-no-properties (line-beginning-position) beg))))
 
 (defun name-radix (radix)
   (cond
@@ -222,25 +194,6 @@
                (kill-new (math-format-radix (string-to-number inputStr r1)))))))
 (spacemacs/set-leader-keys "ox" 'convert-radix)
 
-;; (defun evil-paste-repeat ()
-;;   "paste from register 0 so contents of selection are not yanked"
-;;   (interactive)
-;;   (let ((evil-this-register ?0))
-;; 	(call-interactively 'evil-paste-after)))
-;; (define-key evil-visual-state-map "p" 'evil-paste-after)
-
-;; ;; make all new frames big enough that they are usable. Use M-<F10> to maximize, <F11> to go full screen
-;; (add-hook 'before-make-frame-hook
-;; 		  #'(lambda ()
-;; 			  (add-to-list 'default-frame-alist '(left   . 0))
-;; 			  (add-to-list 'default-frame-alist '(top    . 0))
-;; 			  (add-to-list 'default-frame-alist '(height . 65))
-;; 			  (add-to-list 'default-frame-alist '(width  . 200))))
-
-(fset 'open-file-from-clipboard
-	  [?: ?e ?d ?i ?t ?  ?\C-y tab])
-(spacemacs/set-leader-keys "of" 'open-file-from-clipboard) ;; open the file stored in the system clipboard. Must be a full resolvable path
-
 (add-hook 'c-mode-common-hook
 		  ;; prefered comment style
 		  (lambda ()
@@ -256,87 +209,84 @@
 (add-hook 'java-mode-hook (lambda ()
                             (setq c-basic-offset 3)))
 
-;; (smart-tabs|add-language-and-insinuate
-;;  perl
-;;  perl-mode-hook
-;;  ((perl-indent-line . perl-indent-level)))
+(defun messages-auto-tail (&rest _)
+  "Make *Messages* buffer auto-scroll to the end after each message."
+    (let* ((buf-name "*Messages*")
+           (buf (get-buffer-create buf-name)))
+      (when (not (string= buf-name (buffer-name)))
+        (dolist (win (get-buffer-window-list buf-name nil :all-frames))
+          (with-selected-window win
+            (goto-char (point-max))))
+        (with-current-buffer buf
+          (goto-char (point-max))))))
 
-;; (smart-tabs|add-language-and-insinuate
-;;  spf
-;;  spf-mode-hook
-;;  ((spf-indent-line . spf-indent-level)))
-
-;; (smart-tabs|add-language-and-insinuate
-;;  verilog
-;;  verilog-mode-hook
-;;  ((verilog-indent-line-relative . verilog-indent-level)))
-
-(defun workspace-0 ()
-  "switch to eyebrowse workspace 0"
-  (interactive)
-  (eyebrowse-switch-to-window-config-0))
-
-(defun workspace-1 ()
-  "switch to eyebrowse workspace 1"
-  (interactive)
-  (eyebrowse-switch-to-window-config-1))
-
-(defun workspace-2 ()
-  "switch to eyebrowse workspace 2"
-  (interactive)
-  (eyebrowse-switch-to-window-config-2))
-
-(defun workspace-3 ()
-  "switch to eyebrowse workspace 3"
-  (interactive)
-  (eyebrowse-switch-to-window-config-3))
-
-(defun workspace-4 ()
-  "switch to eyebrowse workspace 4"
-  (interactive)
-  (eyebrowse-switch-to-window-config-4))
-
-(defun workspace-5 ()
-  "switch to eyebrowse workspace 5"
-  (interactive)
-  (eyebrowse-switch-to-window-config-5))
-
-(defun workspace-6 ()
-  "switch to eyebrowse workspace 6"
-  (interactive)
-  (eyebrowse-switch-to-window-config-6))
-
-(defun workspace-7 ()
-  "switch to eyebrowse workspace 7"
-  (interactive)
-  (eyebrowse-switch-to-window-config-7))
-
-(defun workspace-8 ()
-  "switch to eyebrowse workspace 8"
-  (interactive)
-  (eyebrowse-switch-to-window-config-8))
-
-(defun workspace-9 ()
-  "switch to eyebrowse workspace 9"
-  (interactive)
-  (eyebrowse-switch-to-window-config-9))
-
-(spacemacs/set-leader-keys
-  "w0" 'workspace-0
-  "w1" 'workspace-1
-  "w2" 'workspace-2
-  "w3" 'workspace-3
-  "w4" 'workspace-4
-  "w5" 'workspace-5
-  "w6" 'workspace-6
-  "w7" 'workspace-7
-  "w8" 'workspace-8
-  "w9" 'workspace-9)
+(define-minor-mode messages-auto-scroll-mode
+  "Make Messages buffer auto scroll when new input arrives"
+  :init-value nil
+  :global t
+  (if messages-auto-scroll-mode
+      (advice-add 'message :after #'messages-auto-tail)
+    (advice-remove 'message #'messages-auto-tail)))
 
 (provide 'private-functions)
+
+;; (defun evil-paste-repeat ()
+;;   "paste from register 0 so contents of selection are not yanked"
+;;   (interactive)
+;;   (let ((evil-this-register ?0))
+;; 	(call-interactively 'evil-paste-after)))
+;; (define-key evil-visual-state-map "p" 'evil-paste-after)
 
 ;; (setq configuration-layer--elpa-archives
 ;;       `(("melpa" . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/melpa"))
 ;;         ("org"   . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/org"))
 ;;         ("gnu"   . ,(expand-file-name "~/personal/emacs/elpa-mirror/spacemacs-elpa-mirror-latest/gnu"))))
 
+;; (defun reglist-rainbow-identifiers-filter (beg end)
+;;   "only color directives"
+;;   (save-excursion
+;;     (goto-char beg)
+;;     (string-match
+;;      "^[[:space:]]*[-.+]$"
+;;      (buffer-substring-no-properties (line-beginning-position) beg))))
+
+;; ;; make all new frames big enough that they are usable. Use M-<F10> to maximize, <F11> to go full screen
+;; (add-hook 'before-make-frame-hook
+;; 		  #'(lambda ()
+;; 			  (add-to-list 'default-frame-alist '(left   . 0))
+;; 			  (add-to-list 'default-frame-alist '(top    . 0))
+;; 			  (add-to-list 'default-frame-alist '(height . 65))
+;; 			  (add-to-list 'default-frame-alist '(width  . 200))))
+;; (helm-find-files-1 (substring-no-properties (current-kill 0)))
+
+;; (define-key evil-motion-state-map "j" 'evil-next-line)
+;; (define-key evil-motion-state-map "k" 'evil-previous-line)
+;; (define-key evil-operator-state-map "j" 'evil-next-line)
+;; (define-key evil-operator-state-map "k" 'evil-previous-line)
+;; (define-key evil-normal-state-map "j" 'evil-next-visual-line)
+;; (define-key evil-normal-state-map "k" 'evil-previous-visual-line)
+
+;; (evil-define-motion my/evil-next-line (count)
+;;   :type line
+;;   (let ((command (if count 'evil-next-line 'evil-next-visual-line)))
+;;     (funcall command (prefix-numeric-value count))))
+
+;; (define-key evil-motion-state-map (kbd "j") 'my/evil-next-line)
+
+;; (evil-define-motion my/evil-previous-line (count)
+;;   :type line
+;;   (let ((command (if count 'evil-previous-line 'evil-previous-visual-line)))
+;;     (funcall command (prefix-numeric-value count))))
+
+;; (define-key evil-motion-state-map (kbd "k") 'my/evil-previous-line)
+
+;; (with-eval-after-load "persp-mode"
+;;   (defun persp-remove-killed-buffers ()
+;; 	(interactive)
+;; 	(mapc #'(lambda (p)
+;; 			  (when p
+;; 				(setf (persp-buffers p)
+;; 					  (delete-if-not #'buffer-live-p
+;; 									 (persp-buffers p)))))
+;; 		  (persp-persps)))
+;;   )

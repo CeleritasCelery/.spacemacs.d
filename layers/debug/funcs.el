@@ -19,7 +19,7 @@
   "create realgud interactive function name from debugger"
   (intern (concat "realgud:" debugger)))
 
-(defun spacemacs|add-realgud-debugger (mode debugger)
+(defun spacemacs//add-realgud-debugger (mode debugger)
   "added a deubbger to major mode.
 Note that this function MUST be called BEFORE init-realgud.
 Therefore you should add it to a pre-init-realgud definition"
