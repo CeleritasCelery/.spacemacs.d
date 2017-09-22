@@ -95,7 +95,7 @@ values."
    ;; Spacemacs and never uninstall them. (default is `used-only')
    dotspacemacs-install-packages 'used-but-keep-unused))
 
-(defun dotspacemacs/init ()
+ (defun dotspacemacs/init ()
   "Initialization function.
 This function is called at the very startup of Spacemacs initialization
 before layers configuration.
@@ -144,7 +144,7 @@ values."
    ;; `recents' `bookmarks' `projects' `agenda' `todos'."
    ;; List sizes may be nil, in which case
    ;; `spacemacs-buffer-startup-lists-length' takes effect.
-   dotspacemacs-startup-lists '((recents . 5) (projects . 7))
+   dotspacemacs-startup-lists '((recents . 5) (projects . 4) (todos . 5))
    ;; True if the home buffer should respond to resize events.
    dotspacemacs-startup-buffer-responsive t
    ;; Default major mode of the scratch buffer (default `text-mode')
@@ -487,6 +487,7 @@ values."
   (when (configuration-layer/package-usedp 'smartparens)
     (sp-local-pair 'verilog-mode "'" nil :actions nil))
 
+  (setq org-agenda-files '("/nfs/site/home/tjhinckl/.emacs.d/private/local/agenda.org"))
   (setq git-gutter+-diff-options '("-w")) ;; ignore whitespace in gutter diffs
 
   (spacemacs/set-leader-keys-for-major-mode 'json-mode "p" 'jsons-print-path)
