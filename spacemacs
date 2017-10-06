@@ -58,7 +58,8 @@ values."
      version-control
      no-dots
      colors
-     (org :variables org-enable-github-support t)
+     journal
+     (org :variables org-journal-dir "~/.emacs.d/private/local/journal/")
      (evil-snipe :variables evil-snipe-enable-alternate-f-and-t-behaviors t)
      (shell :variables shell-default-height 30 shell-default-position 'bottom)
      (spell-checking :variables spell-checking-enable-by-default nil)
@@ -414,7 +415,6 @@ values."
   (setq no-dots-whitelist '("*Helm file completions*")) ;; show directory when selecting a directory
   (setq read-quoted-char-radix 16) ;; show unpritable chars in hex
   (setq helm-buffer-max-length 60) ;; increase max buffer column for helm
-  (setq perl5-perltidy-executable "/nfs/site/home/tjhinckl/perl5/bin/perltidy")
   (add-hook 'emacs-lisp-mode-hook 'evil-cleverparens-mode)
 
   (fset 'evil-visual-update-x-selection 'ignore) ;; don't update the primary when in evil
@@ -437,6 +437,8 @@ values."
 
   (define-key evil-insert-state-map "\C-e" 'mwim-end-of-code-or-line);; make end-of-line work in insert
   (define-key evil-insert-state-map "\C-a" 'mwim-beginning-of-code-or-line);; make end-of-line work in insert
+  (define-key evil-normal-state-map "\C-f" 'forward-char);; allow forward and backwards in normal state
+  (define-key evil-normal-state-map "\C-b" 'backward-char)
 
   (spacemacs/declare-prefix "o" "user-defined")
   (spacemacs/set-leader-keys "ou" 'untabify) ;; replace tabs with spaces
@@ -475,7 +477,7 @@ values."
   (when (configuration-layer/package-usedp 'smartparens)
     (sp-local-pair 'verilog-mode "'" nil :actions nil))
 
-  (setq org-agenda-files '("/nfs/site/home/tjhinckl/.emacs.d/private/local/agenda.org"))
+  (setq org-agenda-files '("/nfs/site/home/tjhinckl/.emacs.d/private/local/journal/"))
   (setq git-gutter+-diff-options '("-w")) ;; ignore whitespace in gutter diffs
 
   (spacemacs/set-leader-keys-for-major-mode 'json-mode "p" 'jsons-print-path)
@@ -499,7 +501,7 @@ values."
  '(magit-log-arguments (quote ("--graph" "--color" "--decorate" "-n256")))
  '(package-selected-packages
    (quote
-    (eros evil-cleverparens paredit mmm-mode markdown-toc markdown-mode gh-md stickyfunc-enhance srefactor sublimity minimap realgud-pry realgud test-simple loc-changes load-relative winum powerline spinner hydra parent-mode hide-comnt projectile request pkg-info epl flx evil-nerd-commenter smartparens iedit anzu evil goto-chg undo-tree highlight diminish bind-map bind-key helm avy helm-core async popup helm-perldoc deferred unfill json-snatcher json-reformat insert-shebang fuzzy disaster company-c-headers cmake-mode clang-format f s dash pyenv-mode company-anaconda anaconda-mode yapfify pyvenv pytest py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode pythonic skewer-mode simple-httpd multiple-cursors js2-mode dash-functional tern anything perl-completion exec-path-from-shell evil-mc plsense yaxception org gitignore-mode fringe-helper git-gutter+ git-gutter magit magit-popup git-commit with-editor packed rainbow-mode rainbow-identifiers color-identifiers-mode python-mode vlf ox-gfm imenu-list flyspell-correct-helm flyspell-correct auto-dictionary eimp image+ graphviz-dot-mode org-projectile org-present org-pomodoro alert log4e gntp org-download htmlize gnuplot pos-tip flycheck company yasnippet auto-complete smart-tabs-mode xterm-color ws-butler window-numbering which-key wgrep web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package toc-org tabbar spacemacs-theme spaceline smex smeargle shell-pop restart-emacs ranger rainbow-delimiters quelpa popwin persp-mode pcre2el paradox orgit org-plus-contrib org-bullets open-junk-file neotree mwim multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint json-mode js2-refactor js-doc ivy-hydra info+ indent-guide ido-vertical-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-snipe evil-search-highlight-persist evil-numbers evil-nerd-commenter-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word dactyl-mode csv-mode counsel-projectile company-tern company-statistics company-shell column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+    (org-journal eros evil-cleverparens paredit mmm-mode markdown-toc markdown-mode gh-md stickyfunc-enhance srefactor sublimity minimap realgud-pry realgud test-simple loc-changes load-relative winum powerline spinner hydra parent-mode hide-comnt projectile request pkg-info epl flx evil-nerd-commenter smartparens iedit anzu evil goto-chg undo-tree highlight diminish bind-map bind-key helm avy helm-core async popup helm-perldoc deferred unfill json-snatcher json-reformat insert-shebang fuzzy disaster company-c-headers cmake-mode clang-format f s dash pyenv-mode company-anaconda anaconda-mode yapfify pyvenv pytest py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode pythonic skewer-mode simple-httpd multiple-cursors js2-mode dash-functional tern anything perl-completion exec-path-from-shell evil-mc plsense yaxception org gitignore-mode fringe-helper git-gutter+ git-gutter magit magit-popup git-commit with-editor packed rainbow-mode rainbow-identifiers color-identifiers-mode python-mode vlf ox-gfm imenu-list flyspell-correct-helm flyspell-correct auto-dictionary eimp image+ graphviz-dot-mode org-projectile org-present org-pomodoro alert log4e gntp org-download htmlize gnuplot pos-tip flycheck company yasnippet auto-complete smart-tabs-mode xterm-color ws-butler window-numbering which-key wgrep web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package toc-org tabbar spacemacs-theme spaceline smex smeargle shell-pop restart-emacs ranger rainbow-delimiters quelpa popwin persp-mode pcre2el paradox orgit org-plus-contrib org-bullets open-junk-file neotree mwim multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint json-mode js2-refactor js-doc ivy-hydra info+ indent-guide ido-vertical-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-snipe evil-search-highlight-persist evil-numbers evil-nerd-commenter-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word dactyl-mode csv-mode counsel-projectile company-tern company-statistics company-shell column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
  '(safe-local-variable-values
    (quote
     ((eval font-lock-add-keywords nil
