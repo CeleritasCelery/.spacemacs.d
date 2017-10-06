@@ -95,7 +95,7 @@ values."
    ;; Spacemacs and never uninstall them. (default is `used-only')
    dotspacemacs-install-packages 'used-but-keep-unused))
 
- (defun dotspacemacs/init ()
+(defun dotspacemacs/init ()
   "Initialization function.
 This function is called at the very startup of Spacemacs initialization
 before layers configuration.
