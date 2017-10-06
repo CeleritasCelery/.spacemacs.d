@@ -29,3 +29,17 @@ If region is active, operate on it, else operate on line."
            "--standard-error-output"
            perl5-perltidy-options)
     (goto-char old-point)))
+
+(defun spacemacs/perltidy-format-buffer ()
+  "Format current buffer."
+  (interactive)
+  (mark-whole-buffer)
+  (spacemacs/perltidy-format))
+
+(defun spacemacs/perltidy-format-function ()
+  "Format current function."
+  (interactive)
+  (mark-defun)
+  (spacemacs/perltidy-format))
+
+

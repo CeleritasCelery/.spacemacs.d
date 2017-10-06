@@ -9,6 +9,7 @@
 ;;
 ;;; License: GPLv3
 
+(spacemacs|defvar-company-backends cperl-mode)
 (spacemacs|define-jump-handlers cperl-mode)
 (spacemacs|define-jump-handlers perl-mode)
 

@@ -7,6 +7,8 @@
     highlight-numbers
     flycheck
     realgud
+    company
+    (company-plsense :toggle (configuration-layer/package-usedp 'company))
     ;; (company-plsense :location local)
     ;; (perl-completion :toggle (configuration-layer/package-usedp 'auto-complete))
     ;; (anything :toggle (configuration-layer/package-usedp 'perl-completion))
@@ -128,10 +130,14 @@
       (setq cperl-continued-statement-offset 4) ;; if a statement continues indent it to four spaces
       (setq cperl-indent-parens-as-block t) ;; parentheses are indented with the block and not with scope
 
+      (spacemacs/declare-prefix "m=" "format")
+      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "==" 'spacemacs/perltidy-format)
+      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "=b" 'spacemacs/perltidy-format-buffer)
+      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "=f" 'spacemacs/perltidy-format-function)
+
       (spacemacs/declare-prefix "mh" "perldoc")
       (spacemacs/declare-prefix "mg" "find-symbol")
       (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "hp" 'cperl-perldoc-at-point)
-      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "=" 'spacemacs/perltidy-format)
       (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "hd" 'cperl-perldoc)
       (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "v" 'cperl-select-this-pod-or-here-doc)
 
@@ -169,15 +175,17 @@
      highlight-numbers-modelist)))
 
 (defun perl/pre-init-realgud()
-  (spacemacs//add-realgud-debugger 'cperl-mode "trepan.pl"))
+  (spacemacs/add-realgud-debugger 'cperl-mode "trepan.pl"))
 
-;; (defun perl/init-company-plsense()
-;;   (use-package company-plsense
-;;     :init
-;;     (setq company-plsense-enabled-modes '(cperl-mode))
-;;     (setenv "PERL5LIB" "/nfs/site/home/tjhinckl/perl5/lib/perl5:/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5:/p/hdk/cad/spf/latest/lib/perl5:/nfs/site/proj/dpg/tools")
-;;     :config
-;;     (company-plsense-setup)))
+(defun perl/init-company-plsense()
+  (use-package company-plsense
+    :defer t
+    :init
+    (push 'company-plsense company-backends-cperl-mode)
+    (setenv "PERL5LIB" "/nfs/site/home/tjhinckl/perl5/lib/perl5:/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5:/p/hdk/cad/spf/latest/lib/perl5:/nfs/site/proj/dpg/tools")))
+
+(defun perl/post-init-company ()
+  (spacemacs|add-company-hook cperl-mode))
 
 
 ;; (defun perl/init-anything ()
