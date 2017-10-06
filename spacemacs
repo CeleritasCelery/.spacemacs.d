@@ -58,8 +58,8 @@ values."
      version-control
      no-dots
      colors
-     evil-snipe
      (org :variables org-enable-github-support t)
+     (evil-snipe :variables evil-snipe-enable-alternate-f-and-t-behaviors t)
      (shell :variables shell-default-height 30 shell-default-position 'bottom)
      (spell-checking :variables spell-checking-enable-by-default nil)
      )
@@ -94,7 +94,7 @@ values."
    ;; Spacemacs and never uninstall them. (default is `used-only')
    dotspacemacs-install-packages 'used-but-keep-unused))
 
- (defun dotspacemacs/init ()
+(defun dotspacemacs/init ()
   "Initialization function.
 This function is called at the very startup of Spacemacs initialization
 before layers configuration.
@@ -475,7 +475,7 @@ values."
   (when (configuration-layer/package-usedp 'smartparens)
     (sp-local-pair 'verilog-mode "'" nil :actions nil))
 
-  (setq org-agenda-files '("/nfs/site/home/tjhinckl/.emacs.d/private/local/"))
+  (setq org-agenda-files '("/nfs/site/home/tjhinckl/.emacs.d/private/local/agenda.org"))
   (setq git-gutter+-diff-options '("-w")) ;; ignore whitespace in gutter diffs
 
   (spacemacs/set-leader-keys-for-major-mode 'json-mode "p" 'jsons-print-path)
