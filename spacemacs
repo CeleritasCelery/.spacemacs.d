@@ -36,6 +36,7 @@ values."
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
+     html
      markdown
      csv
      python
@@ -46,22 +47,20 @@ values."
      perl
      c-c++
      helm
-     tmux
      imenu-list
      syntax-checking
-     auto-completion
+     (auto-completion :variables auto-completion-enable-sort-by-usage t)
      better-defaults
      evil-cleverparens
      ranger
      emacs-lisp
      git
      version-control
-     no-dots
      colors
      journal
-     (org :variables org-journal-dir "~/.emacs.d/private/local/journal/")
+     org
      (evil-snipe :variables evil-snipe-enable-alternate-f-and-t-behaviors t)
-     (shell :variables shell-default-height 30 shell-default-position 'bottom)
+     (shell :variables shell-default-shell 'shell)
      (spell-checking :variables spell-checking-enable-by-default nil)
      )
    ;; List of additional packages that will be installed without being
@@ -70,11 +69,17 @@ values."
    ;; configuration in `dotspacemacs/user-config'.
    dotspacemacs-additional-packages
    '(
+     suggest
+     (bash-completion :location (recipe :fetcher github :repo "szermatt/emacs-bash-completion"))
+     shx
+     helpful
+     nameless
      json-mode
      json-snatcher
      eimp
      image+
      vlf
+     (company-fish :location local)
      (itpp-mode    :location local)
      (reglist-mode :location local)
      (specman-mode :location local)
@@ -95,7 +100,7 @@ values."
    ;; Spacemacs and never uninstall them. (default is `used-only')
    dotspacemacs-install-packages 'used-but-keep-unused))
 
- (defun dotspacemacs/init ()
+(defun dotspacemacs/init ()
   "Initialization function.
 This function is called at the very startup of Spacemacs initialization
 before layers configuration.
@@ -144,7 +149,7 @@ values."
    ;; `recents' `bookmarks' `projects' `agenda' `todos'."
    ;; List sizes may be nil, in which case
    ;; `spacemacs-buffer-startup-lists-length' takes effect.
-   dotspacemacs-startup-lists '((recents . 5) (projects . 4) (todos . 5))
+   dotspacemacs-startup-lists '((recents . 5) (projects . 4) )
    ;; True if the home buffer should respond to resize events.
    dotspacemacs-startup-buffer-responsive t
    ;; Default major mode of the scratch buffer (default `text-mode')
@@ -191,7 +196,7 @@ values."
    dotspacemacs-visual-line-move-text t
    ;; If non nil, inverse the meaning of `g' in `:substitute' Evil ex-command.
    ;; (default nil)
-   dotspacemacs-ex-substitute-global nil
+   dotspacemacs-ex-substitute-global t
    ;; Name of the default layout (default "Default")
    dotspacemacs-default-layout-name "Default"
    ;; If non nil the default layout name is displayed in the mode-line.
@@ -318,15 +323,17 @@ values."
   (add-to-list 'auto-mode-alist '("\\.svh\\'"     . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.vf\\'"      . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.hier\\'"    . verilog-mode))
+  (add-to-list 'auto-mode-alist '("\\.rdl\\'"     . verilog-mode))
   (add-to-list 'auto-mode-alist '("rc\\'"         . conf-unix-mode))
   (add-to-list 'interpreter-mode-alist '("gmake"  . makefile-mode))
 
-  ;; get around old magit git version problem
-  (setq magit-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git")
-  (setq git-gutter+-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git")
-  (setq evil-want-abbrev-expand-on-insert-exit nil) ;; don't preform an abbrev expansion on insert state exit
-  (setq exec-path-from-shell-check-startup-files nil)
+  (setq custom-file "~/.emacs.d/private/local/custom.el")
+  (load custom-file 'noerror)
 
+  (setq magit-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git" ;; get around old magit git version problem
+        git-gutter+-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git" ;; get around old magit git version problem
+        evil-want-abbrev-expand-on-insert-exit nil ;; don't preform an abbrev expansion on insert state exit
+        exec-path-from-shell-check-startup-files nil)
   )
 
 (defun dotspacemacs/user-config ()
@@ -337,85 +344,47 @@ values."
   ;; explicitly specified that a variable should be set before a package is loaded,
   ;; you should place your code here."
 
+  (setq company-plsense-executable "/nfs/site/home/tjhinckl/perl5/bin/plsense")
   (defconst lisp--prettify-symbols-alist
-    '(("lambda" . ?λ)   ; Shrink this
-      ("."      . ?•))) ; Enlarge this
+    '(("lambda" . ?λ)                   ; Shrink this
+      ("."      . ?•)))                 ; Enlarge this
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
   (add-hook 'emacs-lisp-mode-hook 'aggressive-indent-mode)
   (spacemacs|diminish orgtbl-mode)
 
-  (use-package spfspec-mode
-    :mode "\\.spfspec\\'"
-    :config
-    (with-eval-after-load "highlight-numbers"
-      (puthash
-       'spfspec-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]]*?\\|b[01]*?\\|o[0-7]*?\\|d[[:digit:]]*?\\)\\_>"
-       highlight-numbers-modelist)))
 
-  (use-package reglist-mode
-    :mode "\\.list\\'"
-    :config
-    (progn
-      (add-hook 'reglist-mode-hook 'color-identifiers-mode)
-      (with-eval-after-load "color-identifiers-mode"
-        (add-to-list
-         'color-identifiers:modes-alist
-         `(reglist-mode
-           . ("^[[:space:]]*[-.+]" "\\_<\\([[:alpha:]]+[[:alnum:]]*\\)\\_>"
-              (nil font-lock-keyword-face font-lock-function-name-face))))
+  (add-to-list 'exec-path "/nfs/site/home/tjhinckl/local/bin" t)
 
-        (defun color-identifiers:colorize (limit)
-          (color-identifiers:scan-identifiers
-           (lambda (start end)
-             (let* ((identifier (buffer-substring-no-properties start end))
-                    (hex (color-identifiers:color-identifier identifier)))
-               (when hex
-                 (put-text-property start end 'face `(:foreground ,hex))
-                 ;; (add-face-text-property start end '(:underline t))
-                 (add-face-text-property start end '(:weight bold))
-                 (put-text-property start end 'color-identifiers:fontified t))))
-           limit)))))
+  (setq-default tab-width 4 ;; colunms per "tab"
+                require-final-newline t ;; always require a newline at end of the file for compatibility
+                visual-line-mode t ;; cursor keys move by visual lines, not logical ones
+                evil-snipe-scope 'line         ;; snipe current line only
+                evil-snipe-repeat-scope 'line) ;; repeated snipes will stay on line
 
-  (use-package itpp-mode
-    :mode "\\.itpp\\'"
-    )
+  (setq evil-search-module 'evil-search ;; use evil search so we can have very-magic mode enabled
+        evil-magic 'very-magic ;; very-magic mode matches perl regex syntax
+        evil-ex-search-vim-style-regexp t ;; translate vim escape characters to emacs regex
+        interprogram-paste-function 'x-cut-buffer-or-selection-value ;; make inter-program paste work correctly
+        recentf-max-saved-items 300 ;; I want a lot of recent items
+        projectile-enable-caching t ;; cache the project so it doesn't take an eternity to load
+        delete-by-moving-to-trash nil ;; don't move deleted files to my trash, which is in my home disk
+        dired-recursive-deletes 'always ;; don't ask for confirmation to delete files
+        vc-follow-symlinks t            ; follow symlinks
+        large-file-warning-threshold nil ;; Don't warn me when opening large files
+        read-quoted-char-radix 16  ;; show unpritable chars in hex
+        helm-buffer-max-length 60) ;; increase max buffer column for helm
 
-  (use-package sgdc-mode
-    :mode "\\.sgdc\\'"
-    :mode "\\.opt\\'"
-    )
+  (spacemacs|use-package-add-hook company
+    :post-config
+    (define-key company-active-map (kbd "<tab>") 'company-complete-common)
+    (define-key company-active-map (kbd "TAB") 'company-complete-common))
 
-  (use-package specman-mode
-    :mode "\\.e\\'"
-    :mode "\\.e3\\'"
-    :mode "\\.load\\'"
-    :mode "\\.ecom\\'"
-    :mode "\\.etst\\'"
-    )
+  (use-package nameless
+    :commands nameless-mode-from-hook
+    :init
+    (setq nameless-prefix "ϟ")
+    (add-hook 'emacs-lisp-mode-hook 'nameless-mode-from-hook))
 
-  (setq-default tab-width 4) ;; colunms per "tab"
-  (setq-default indent-tabs-mode nil) ;; use spaces instead of tabs by default
-  (setq-default require-final-newline t) ;; always require a newline at end of the file for compatibility
-  (setq-default visual-line-mode t) ;; cursor keys move by visual lines, not logical ones
-  (setq-default evil-snipe-scope 'line) ;; snipe current line only
-  (setq-default evil-snipe-repeat-scope 'line) ;; repeated snipes will stay on line
-  (setq evil-search-module 'evil-search) ;; use evil search so we can have very-magic mode enabled
-  (setq evil-magic 'very-magic) ;; very-magic mode matches perl regex syntax
-  (setq evil-ex-search-vim-style-regexp t) ;; translate vim escape characters to emacs regex
-  (setq mouse-drag-copy-region nil) ;; stops selection with a mouse being immediately injected to the kill ring
-  (setq select-enable-clipboard t) ;; tell emacs to use the system clipboard ...
-  (setq select-enable-primary nil) ;; and don't use the primary
-  (setq interprogram-paste-function 'x-cut-buffer-or-selection-value) ;; make inter-program paste work correctly
-  (setq recentf-max-saved-items 300) ;; I want a lot of recent items
-  (setq projectile-enable-caching t) ;; cache the project so it doesn't take an eternity to load
-  (setq delete-by-moving-to-trash nil) ;; don't move deleted files to my trash, which is in my home disk
-  (setq dired-recursive-deletes 'always) ;; don't ask for confirmation to delete files
-  (setq vc-follow-symlinks t) ; follow symlinks
-  (setq large-file-warning-threshold nil) ;; Don't warn me when opening large files
-  (setq no-dots-whitelist '("*Helm file completions*")) ;; show directory when selecting a directory
-  (setq read-quoted-char-radix 16) ;; show unpritable chars in hex
-  (setq helm-buffer-max-length 60) ;; increase max buffer column for helm
-  (add-hook 'emacs-lisp-mode-hook 'evil-cleverparens-mode)
 
   (fset 'evil-visual-update-x-selection 'ignore) ;; don't update the primary when in evil
   (define-key global-map (kbd "<S-down-mouse-1>") 'mouse-save-then-kill) ;; use shift-click to mark a region
@@ -425,113 +394,65 @@ values."
   ;; this probably won't work in the terminal
   (define-key input-decode-map (kbd "C-i") (kbd "H-i"))
   (global-set-key (kbd "H-i") 'evil-jump-forward)
-  (push "/nfs/site/home/tjhinckl/personal/verilator-3.884/include" flycheck-clang-include-path)
 
-  (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p nil t) ;; make scripts executable on save
+  (add-to-list 'flycheck-clang-include-path "/nfs/site/home/tjhinckl/personal/verilator-3.884/include")
+  (add-to-list 'flycheck-clang-include-path "/nfs/site/home/tjhinckl/workspace/dteg_tools-ultiscan/template/verif/tests/ids")
+  (add-to-list 'flycheck-clang-include-path "/p/hdk/rtl/cad/x86-64_linux26/dteg/ideas_shell/0.15.1/ISC/include")
+  (add-to-list 'flycheck-clang-args "-std=c++11")
+  (setq flycheck-gcc-language-standard "c++11")
+
+  (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p) ;; make scripts executable on save
 
   (add-hook 'focus-in-hook 'redraw-display) ;; display may be out of focus when switching workspaces
 
   ;; set arrow keys in isearch and evil search. up/down is history. press Return to exit
-  (define-key isearch-mode-map (kbd "<up>") 'isearch-ring-retreat)
-  (define-key isearch-mode-map (kbd "<down>") 'isearch-ring-advance)
+  (define-key isearch-mode-map (kbd "C-k") 'isearch-ring-retreat)
+  (define-key isearch-mode-map (kbd "C-j") 'isearch-ring-advance)
 
-  (define-key evil-insert-state-map "\C-e" 'mwim-end-of-code-or-line);; make end-of-line work in insert
-  (define-key evil-insert-state-map "\C-a" 'mwim-beginning-of-code-or-line);; make end-of-line work in insert
-  (define-key evil-normal-state-map "\C-f" 'forward-char);; allow forward and backwards in normal state
-  (define-key evil-normal-state-map "\C-b" 'backward-char)
+  (evil-global-set-key 'insert (kbd "C-y") 'yank)
+  (evil-global-set-key 'insert (kbd "C-e") 'mwim-end-of-code-or-line);; make end-of-line work in insert
+  (evil-global-set-key 'insert (kbd "C-a") 'mwim-beginning-of-code-or-line) ;; make end-of-line work in insert
+  (evil-global-set-key 'normal (kbd "C-f") 'forward-char) ;; allow forward and backwards in normal state
+  (evil-global-set-key 'normal (kbd "C-b") 'backward-char) ;; allow backward char in normal state
 
   (spacemacs/declare-prefix "o" "user-defined")
-  (spacemacs/set-leader-keys "ou" 'untabify) ;; replace tabs with spaces
-  (spacemacs/set-leader-keys "ow" 'whitespace-mode) ;; toggle whitespace mode
+  (spacemacs/set-leader-keys
+    "ou" 'untabify        ;; replace tabs with spaces
+    "ow" 'whitespace-mode ;; toggle whitespace mode
 
-  (define-key evil-normal-state-map "gh" 'backward-list) ; sp-backward-down-sexp
-  (define-key evil-normal-state-map "gj" 'down-list) ; sp-up-sexp
-  (define-key evil-normal-state-map "gk" 'backward-up-list) ; sp-backward-up-sexp
-  (define-key evil-normal-state-map "gl" 'forward-list) ; sp-down-sexp
+    "jj" 'evil-avy-goto-word-or-subword-1
+    "jc" 'evil-avy-goto-char
+    "jC" 'evil-avy-goto-char-2
 
-  (spacemacs/set-leader-keys "jj" 'evil-avy-goto-word-or-subword-1)
-  (spacemacs/set-leader-keys "jc" 'evil-avy-goto-char)
-  (spacemacs/set-leader-keys "jC" 'evil-avy-goto-char-2)
+    "ws" 'split-window-below-and-focus
+    "wS" 'split-window-below
+    "wv" 'split-window-right-and-focus
+    "wV" 'split-window-right
 
-  (spacemacs/set-leader-keys "ws" 'split-window-below-and-focus)
-  (spacemacs/set-leader-keys "wS" 'split-window-below)
-  (spacemacs/set-leader-keys "wv" 'split-window-right-and-focus)
-  (spacemacs/set-leader-keys "wV" 'split-window-right)
+    "hs" 'profiler-start
+    "ha" 'profiler-report
 
-  (add-hook 'emacs-lisp-mode-hook 'rainbow-mode)
+    "gg" 'spacemacs/vcs-transient-state/body)
 
-  (spacemacs|define-transient-state imagex
-    :title "Image Manipulation Transient State"
-    :bindings
-    ("+" imagex-sticky-zoom-in)
-    ("=" imagex-sticky-zoom-in)
-    ("-" imagex-sticky-zoom-out)
-    ("m" imagex-sticky-maximize)
-    ("o" imagex-sticky-restore-original)
-    ("r" imagex-sticky-rotate-right)
-    ("l" imagex-sticky-rotate-left)
-    ("q" nil :exit t))
-  (spacemacs/set-leader-keys-for-major-mode 'image-mode "m" 'spacemacs/imagex-transient-state/body)
+  (when (configuration-layer/package-usedp 'rainbow-mode)
+    (add-hook 'emacs-lisp-mode-hook 'rainbow-mode)) ;; color names are highlighted in that color
+
+  (setq magit-blame-time-format "%yww%U.%u | %b,%d %H:%M") ;; use intel ww syntax
+  (setq magit-log-arguments '("--graph" "--color" "--decorate" "-n256"))
+  (setq magit-diff-section-arguments '("--ignore-space-change" "--ignore-all-space" "--no-ext-diff"))
 
   ;; Don't auto-pair single quote in verilog mode
   (when (configuration-layer/package-usedp 'smartparens)
     (sp-local-pair 'verilog-mode "'" nil :actions nil))
 
-  (setq org-agenda-files '("/nfs/site/home/tjhinckl/.emacs.d/private/local/journal/"))
   (setq git-gutter+-diff-options '("-w")) ;; ignore whitespace in gutter diffs
 
-  (spacemacs/set-leader-keys-for-major-mode 'json-mode "p" 'jsons-print-path)
+  (spacemacs/set-leader-keys-for-major-mode 'json-mode "p" 'jsons-print-path) ;; print the json path of object
 
   (spacemacs/add-flycheck-hook 'verilog-mode)
 
   (require 'private-functions)
-
+  (require 'shell-setup)
+  (require 'org-setup)
   )
 
-;; Do not write anything past this comment. This is where Emacs will
-;; auto-generate custom variable definitions.
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(magit-diff-section-arguments
-   (quote
-    ("--ignore-space-change" "--ignore-all-space" "--no-ext-diff")))
- '(magit-log-arguments (quote ("--graph" "--color" "--decorate" "-n256")))
- '(package-selected-packages
-   (quote
-    (org-journal eros evil-cleverparens paredit mmm-mode markdown-toc markdown-mode gh-md stickyfunc-enhance srefactor sublimity minimap realgud-pry realgud test-simple loc-changes load-relative winum powerline spinner hydra parent-mode hide-comnt projectile request pkg-info epl flx evil-nerd-commenter smartparens iedit anzu evil goto-chg undo-tree highlight diminish bind-map bind-key helm avy helm-core async popup helm-perldoc deferred unfill json-snatcher json-reformat insert-shebang fuzzy disaster company-c-headers cmake-mode clang-format f s dash pyenv-mode company-anaconda anaconda-mode yapfify pyvenv pytest py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode pythonic skewer-mode simple-httpd multiple-cursors js2-mode dash-functional tern anything perl-completion exec-path-from-shell evil-mc plsense yaxception org gitignore-mode fringe-helper git-gutter+ git-gutter magit magit-popup git-commit with-editor packed rainbow-mode rainbow-identifiers color-identifiers-mode python-mode vlf ox-gfm imenu-list flyspell-correct-helm flyspell-correct auto-dictionary eimp image+ graphviz-dot-mode org-projectile org-present org-pomodoro alert log4e gntp org-download htmlize gnuplot pos-tip flycheck company yasnippet auto-complete smart-tabs-mode xterm-color ws-butler window-numbering which-key wgrep web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package toc-org tabbar spacemacs-theme spaceline smex smeargle shell-pop restart-emacs ranger rainbow-delimiters quelpa popwin persp-mode pcre2el paradox orgit org-plus-contrib org-bullets open-junk-file neotree mwim multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint json-mode js2-refactor js-doc ivy-hydra info+ indent-guide ido-vertical-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flycheck-pos-tip flx-ido fish-mode fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-snipe evil-search-highlight-persist evil-numbers evil-nerd-commenter-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word dactyl-mode csv-mode counsel-projectile company-tern company-statistics company-shell column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
- '(safe-local-variable-values
-   (quote
-    ((eval font-lock-add-keywords nil
-           (\`
-            (((\,
-               (concat "("
-                       (regexp-opt
-                        (quote
-                         ("sp-do-move-op" "sp-do-move-cl" "sp-do-put-op" "sp-do-put-cl" "sp-do-del-op" "sp-do-del-cl"))
-                        t)
-                       "\\_>"))
-              1
-              (quote font-lock-variable-name-face)))))
-     (cperl-indent-parens-as-block . t)))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ediff-current-diff-A ((t (:background "#32322c" :foreground "#b1951d"))))
- '(ediff-current-diff-B ((t (:background "#32322c" :foreground "#b1951d"))))
- '(ediff-current-diff-C ((t (:background "#32322c" :foreground "#b1951d"))))
- '(ediff-even-diff-A ((t (:background "#424245" :foreground "Gray70"))))
- '(ediff-even-diff-B ((t (:background "#424245" :foreground "Gray70"))))
- '(ediff-even-diff-C ((t (:background "#424245" :foreground "Gray70"))))
- '(ediff-fine-diff-A ((t (:background "#293235" :foreground "#67b11d"))))
- '(ediff-fine-diff-B ((t (:background "#293235" :foreground "#67b11d"))))
- '(ediff-fine-diff-C ((t (:background "#293235" :foreground "#67b11d"))))
- '(ediff-odd-diff-A ((t (:background "#454242" :foreground "Gray70"))))
- '(ediff-odd-diff-B ((t (:background "#454242" :foreground "Gray70"))))
- '(ediff-odd-diff-C ((t (:background "#454242" :foreground "Gray70"))))
- '(minimap-active-region-background ((t :inherit highlight)))
- '(minimap-font-face ((t (:height 20 :family "DejaVu Sans Mono")))))

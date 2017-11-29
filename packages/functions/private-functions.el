@@ -1,5 +1,54 @@
 ;; a collection of functions I wrote to assist in coding
 
+(use-package spfspec-mode
+  :mode "\\.spfspec\\'"
+  :config
+  (with-eval-after-load "highlight-numbers"
+    (puthash
+     'spfspec-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]]*?\\|b[01]*?\\|o[0-7]*?\\|d[[:digit:]]*?\\)\\_>"
+     highlight-numbers-modelist)))
+
+(use-package reglist-mode
+  :mode "\\.list\\'"
+  :config
+  (progn
+    (add-hook 'reglist-mode-hook 'color-identifiers-mode)
+    (with-eval-after-load "color-identifiers-mode"
+      (add-to-list
+       'color-identifiers:modes-alist
+       `(reglist-mode
+         . ("^[[:space:]]*[-.+]" "\\_<\\([[:alpha:]]+[[:alnum:]]*\\)\\_>"
+            (nil font-lock-keyword-face font-lock-function-name-face))))
+
+      (defun color-identifiers:colorize (limit)
+        (color-identifiers:scan-identifiers
+         (lambda (start end)
+           (let* ((identifier (buffer-substring-no-properties start end))
+                  (hex (color-identifiers:color-identifier identifier)))
+             (when hex
+               (put-text-property start end 'face `(:foreground ,hex))
+               ;; (add-face-text-property start end '(:underline t))
+               (add-face-text-property start end '(:weight bold))
+               (put-text-property start end 'color-identifiers:fontified t))))
+         limit)))))
+
+(use-package itpp-mode
+  :mode "\\.itpp\\'"
+  )
+
+(use-package sgdc-mode
+  :mode "\\.sgdc\\'"
+  :mode "\\.opt\\'"
+  )
+
+(use-package specman-mode
+  :mode "\\.e\\'"
+  :mode "\\.e3\\'"
+  :mode "\\.load\\'"
+  :mode "\\.ecom\\'"
+  :mode "\\.etst\\'"
+  )
+
 (defun highlight-lines ()
   (interactive)
   (set-face-attribute 'highlight nil :background "#293235" :foreground "#67b11d") ;; green
@@ -82,18 +131,86 @@
   (helm-find-files-1 (replace-regexp-in-string "\\s-+" "" (substring-no-properties (current-kill 0)))))
 (spacemacs/set-leader-keys "of" #'my/open-file-in-clipboard)
 
-(defun my/window-large ()
-  (interactive)
-  (shell-command "xrandr -s 1920x1200"))
+(defvar window-sizes
+  '((large  . "1920x1200")
+    (wide   . "1920x1080")
+    (mobile . "1536x864"))
+  "list of valid VNC dimensions")
 
-(defun my/window-mobile ()
-  (interactive)
-  (shell-command "xrandr -s 1536x864"))
+(defvar prev-vnc-size (caar window-sizes)
+  "default VNC size")
 
-(defun my/window-wide ()
-  (interactive)
-  (shell-command "xrandr -s 1920x1080"))
+(defun vnc-resize (size)
+  (setq prev-vnc-size size)
+  (shell-command (concat "xrandr --size " (cdr (assoc size window-sizes)))))
 
+(defun vnc-prev ()
+  (interactive)
+  (vnc-resize prev-vnc-size))
+
+(dolist (size window-sizes)
+  (let ((name (car size)))
+    (eval `(defun ,(intern (concat "vnc-window-" (symbol-name name))) ()
+             (interactive)
+             (vnc-resize ',name)))))
+
+
+
+(spacemacs/set-leader-keys "oii" #'vnc-prev)
+(spacemacs/set-leader-keys "oil" #'vnc-window-large)
+(spacemacs/set-leader-keys "oim" #'vnc-window-mobile)
+(spacemacs/set-leader-keys "oiw" #'vnc-window-wide)
+
+(setenv "SPF_ROOT" "/p/hdk/cad/spf/latest")
+(setenv "IDS_HOME" "/p/hdk/rtl/cad/x86-64_linux26/dteg/ideas_shell/0.7.0")
+(setenv "GLOBAL_TOOLS" "/nfs/site/proj/dpg/tools")
+
+(setq ec-hdk (concat "/p/hdk/rtl/hdk.rc -cfg shdk" (if (eq (getenv "EC_SITE") "fc") "73" "74")))
+
+(setq spf-root (concat (getenv "SPF_ROOT") "/bin/spf_setup_env"))
+
+(setq ec-variables
+      `(("IP_RELEASES"  . ,ec-hdk)
+        ("IP_MODELS"    . ,ec-hdk)
+        ("GIT_REPOS"    . ,ec-hdk)
+        ("GLOBAL_TOOLS" . ,ec-hdk)
+        ("RTLMODELS"    . ,ec-hdk)
+        ("SPF_PERL_LIB" . ,spf-root)))
+
+(dolist (var ec-variables)
+  (--if-let (shell-command-to-string (format "/usr/intel/bin/tcsh -c 'source %s >/dev/null; echo -n $%s'" (cdr var) (car var)))
+      (setenv (car var) it)))
+
+(defun shx-cmd-setmodel (_input)
+  (let* ((root (getenv "HDK_MODELS"))
+         (models (s-lines (shell-command-to-string (format "find %s/ -maxdepth 1 2>/dev/null" root))))
+         (model (completing-read "Select Model: " (mapcar 'file-name-nondirectory models))))
+    (setenv "MODEL_ROOT" (concat root "/" model))
+    (comint-simple-send nil (format "export MODEL_ROOT=%s" (getenv "MODEL_ROOT")))))
+
+
+(defun set-model ()
+  (interactive)
+  (let (models model versions version duts dut model-root)
+    (setq models (s-lines (shell-command-to-string (format "find %s/ -maxdepth 1 2>/dev/null" (getenv "IP_MODELS")))))
+    (setq model (completing-read "Select Model: " (mapcar 'file-name-nondirectory models)))
+    (setq versions (s-lines (shell-command-to-string (concat "find " (getenv "IP_MODELS") "/" model "/ -maxdepth 1 2>/dev/null"))))
+    (setq version (completing-read "Select Version: " (mapcar 'file-name-nondirectory versions)))
+    (setq model-root (concat (getenv "IP_MODELS") "/" model "/" version))
+    (setenv "MODEL_ROOT" model-root)
+
+    (setq duts (s-lines (shell-command-to-string (concat "find " model-root "/tools/ipgen/ -maxdepth 1 -type d 2>/dev/null"))))
+    (setq dut (completing-read "Select DUT: " (mapcar 'file-name-nondirectory duts)))
+    (setenv "STF_SPFSPEC" (concat model-root "/tools/ipgen/" dut "/output/dft/verif/rtl/spf/" dut ".stf.spfspec"))
+    (setenv "TAP_SPFSPEC" (concat model-root "/tools/ipgen/" dut "/output/dft/verif/rtl/spf/" dut ".tap.spfspec"))))
+
+(defun cel/create-persistant-shell (name)
+  "Create a presistent named NAME shell to layout."
+  (interactive "sShell Name: ")
+  (-let [shell-buf (s-lex-format "*${name}*")]
+    (shell shell-buf)
+    (persp-add-buffer shell-buf)))
+(spacemacs/set-leader-keys "os" #'cel/create-persistant-shell)
 
 (require 'calc-bin) ;; converting radicies
 (require 'calc-ext) ;; big numbers
@@ -209,6 +326,30 @@
 (add-hook 'java-mode-hook (lambda ()
                             (setq c-basic-offset 3)))
 
+
+(defun forward-word-test (&optional arg)
+  (let ((find-word-boundary-function-table
+
+         word-move-empty-char-table
+         ;; (if (char-table-p word-move-empty-char-table)
+         ;;     (setq word-move-empty-char-table (make-char-table nil)))
+         ))
+    (forward-word (or arg 1))
+    ))
+
+(spacemacs|define-transient-state imagex
+  :title "Image Manipulation Transient State"
+  :bindings
+  ("+" imagex-sticky-zoom-in)
+  ("=" imagex-sticky-zoom-in)
+  ("-" imagex-sticky-zoom-out)
+  ("m" imagex-sticky-maximize)
+  ("o" imagex-sticky-restore-original)
+  ("r" imagex-sticky-rotate-right)
+  ("l" imagex-sticky-rotate-left)
+  ("q" nil :exit t))
+(spacemacs/set-leader-keys-for-major-mode 'image-mode "m" 'spacemacs/imagex-transient-state/body)
+
 (defun messages-auto-tail (&rest _)
   "Make *Messages* buffer auto-scroll to the end after each message."
     (let* ((buf-name "*Messages*")
@@ -227,6 +368,49 @@
   (if messages-auto-scroll-mode
       (advice-add 'message :after #'messages-auto-tail)
     (advice-remove 'message #'messages-auto-tail)))
+
+(defun my/copy-buffer-to-file (filename)
+  (interactive "sFile to write? ")
+  (let ((bufname (buffer-name)))
+    (set-visited-file-name filename)
+    (save-buffer)
+    (set-visited-file-name nil)
+    (rename-buffer bufname)))
+
+(defun my/espf-post-hook ()
+  (interactive)
+  (save-match-data
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "^\\(\\(?:set\\|compare\\)\s+[^[:space:]]+\s+=\s+'[^[:space:]]+\\)'")
+        (replace-match "\\1")))))
+
+(defun cel/helm-ff-dot-hardlink-p (file)
+  (s-ends-with? ".." file))
+
+(defun cel/helm-ff-return-true (&optional _arg) t)
+
+(defun cel/helm-ff-up-one-level (fcn &rest args)
+  (prog2
+      (advice-add 'helm-file-completion-source-p
+                  :override 'cel/helm-ff-return-true)
+      (apply fcn args)
+    (advice-remove 'helm-file-completion-source-p
+                   'cel/helm-ff-return-true)))
+
+(defun cel/helm-ff-dots-at-bottom (ret-val)
+  (if (listp ret-val)
+      (-rotate (- (--count (s-ends-with? "." it) (-take 2 ret-val)))
+               ret-val)
+    ret-val))
+
+(with-eval-after-load 'helm-files
+  (advice-add 'helm-ff-filter-candidate-one-by-one
+              :before-until 'cel/helm-ff-dot-hardlink-p)
+  (advice-add 'helm-find-files-up-one-level
+              :around 'cel/helm-ff-up-one-level)
+  (advice-add 'helm-find-files-get-candidates
+              :filter-return 'cel/helm-ff-dots-at-bottom))
 
 (provide 'private-functions)
 
