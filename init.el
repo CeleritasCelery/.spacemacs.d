@@ -69,8 +69,8 @@ values."
    ;; configuration in `dotspacemacs/user-config'.
    dotspacemacs-additional-packages
    '(
+     dash-functional
      suggest
-     (bash-completion :location (recipe :fetcher github :repo "szermatt/emacs-bash-completion"))
      shx
      helpful
      nameless
@@ -79,13 +79,14 @@ values."
      eimp
      image+
      vlf
-     (company-fish :location local)
-     (itpp-mode    :location local)
-     (reglist-mode :location local)
-     (specman-mode :location local)
-     (sgdc-mode    :location local)
-     (spfspec-mode :location local)
-     (functions    :location local)
+     (company-fish        :location local)
+     (company-async-files :location local)
+     (itpp-mode           :location local)
+     (reglist-mode        :location local)
+     (specman-mode        :location local)
+     (sgdc-mode           :location local)
+     (spfspec-mode        :location local)
+     (functions           :location local)
      )
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '(org-projectile projectile)
@@ -385,7 +386,6 @@ values."
     (setq nameless-prefix "ϟ")
     (add-hook 'emacs-lisp-mode-hook 'nameless-mode-from-hook))
 
-
   (fset 'evil-visual-update-x-selection 'ignore) ;; don't update the primary when in evil
   (define-key global-map (kbd "<S-down-mouse-1>") 'mouse-save-then-kill) ;; use shift-click to mark a region
 
@@ -414,6 +414,19 @@ values."
   (evil-global-set-key 'insert (kbd "C-a") 'mwim-beginning-of-code-or-line) ;; make end-of-line work in insert
   (evil-global-set-key 'normal (kbd "C-f") 'forward-char) ;; allow forward and backwards in normal state
   (evil-global-set-key 'normal (kbd "C-b") 'backward-char) ;; allow backward char in normal state
+  (evil-global-set-key 'normal (kbd "0"  ) 'evil-first-non-blank) ;; swap `^' and `0'
+  (evil-global-set-key 'normal (kbd "^"  ) 'evil-digit-argument-or-evil-beginning-of-line)
+  (evil-global-set-key 'normal (kbd "C-s") 'evil-search-next)
+
+  (spacemacs/set-leader-keys "ii" 'aya-create)
+  (evil-global-set-key 'insert (kbd "C-'") 'aya-expand)
+
+  (add-hook 'makefile-mode-hook (lambda () (modify-syntax-entry ?$ "_")))
+
+  (global-evil-mc-mode)
+  ;; changing the volume on my mic triggers these bindings.
+  (dolist (key '("<XF86AudioLowerVolume>" "<XF86AudioRaiseVolume>"))
+    (define-key global-map (kbd key) (lambda () (interactive))))
 
   (spacemacs/declare-prefix "o" "user-defined")
   (spacemacs/set-leader-keys
@@ -432,6 +445,7 @@ values."
     "hs" 'profiler-start
     "ha" 'profiler-report
 
+    "fa" 'save-buffer ;; i often miss type `SPC f s' and type `SPF s f'
     "gg" 'spacemacs/vcs-transient-state/body)
 
   (when (configuration-layer/package-usedp 'rainbow-mode)
