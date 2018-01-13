@@ -49,6 +49,9 @@ values."
      helm
      imenu-list
      syntax-checking
+     major-modes
+     config
+     shell-config
      (auto-completion :variables auto-completion-enable-sort-by-usage t)
      better-defaults
      evil-cleverparens
@@ -71,7 +74,6 @@ values."
    '(
      dash-functional
      suggest
-     shx
      helpful
      nameless
      json-mode
@@ -79,14 +81,6 @@ values."
      eimp
      image+
      vlf
-     (company-fish        :location local)
-     (company-async-files :location local)
-     (itpp-mode           :location local)
-     (reglist-mode        :location local)
-     (specman-mode        :location local)
-     (sgdc-mode           :location local)
-     (spfspec-mode        :location local)
-     (functions           :location local)
      )
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '(org-projectile projectile)
@@ -325,6 +319,7 @@ values."
   (add-to-list 'auto-mode-alist '("\\.vf\\'"      . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.hier\\'"    . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.rdl\\'"     . verilog-mode))
+  (add-to-list 'auto-mode-alist '("\\.inc\\'"     . reglist-mode))
   (add-to-list 'auto-mode-alist '("rc\\'"         . conf-unix-mode))
   (add-to-list 'interpreter-mode-alist '("gmake"  . makefile-mode))
 
@@ -409,6 +404,7 @@ values."
   (define-key isearch-mode-map (kbd "C-k") 'isearch-ring-retreat)
   (define-key isearch-mode-map (kbd "C-j") 'isearch-ring-advance)
 
+  (evil-global-set-key 'insert (kbd "C-h") 'delete-backward-char)
   (evil-global-set-key 'insert (kbd "C-y") 'yank)
   (evil-global-set-key 'insert (kbd "C-e") 'mwim-end-of-code-or-line);; make end-of-line work in insert
   (evil-global-set-key 'insert (kbd "C-a") 'mwim-beginning-of-code-or-line) ;; make end-of-line work in insert
@@ -465,8 +461,8 @@ values."
 
   (spacemacs/add-flycheck-hook 'verilog-mode)
 
-  (require 'private-functions)
-  (require 'shell-setup)
-  (require 'org-setup)
+  ;; (require 'private-functions)
+  ;; (require 'shell-setup)
+  ;; (require 'org-setup)
   )
 

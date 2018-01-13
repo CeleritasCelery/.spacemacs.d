@@ -1,0 +1,6 @@
+[submodule "layers/shell-config/local/company-fish"]
+	path = layers/shell-config/local/company-fish
+	url = https://github.com/CeleritasCelery/company-fish.git
+[submodule "journal"]
+	path = layers/journal
+	url = https://github.com/borgnix/spacemacs-journal.git
