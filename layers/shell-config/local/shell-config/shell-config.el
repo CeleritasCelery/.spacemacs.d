@@ -4,9 +4,7 @@
 
 (setq shell-file-name "bash")
 (setq comint-scroll-to-bottom-on-input t)
-
-(when (configuration-layer/package-usedp 'evil-cleverparens)
-  (add-hook 'emacs-lisp-mode-hook 'evil-cleverparens-mode))
+(setq comint-process-echoes t)
 
 (defun track-shell-directory/procfs (str)
   (prog1 str
@@ -15,16 +13,6 @@
            (format "/proc/%s/cwd" (process-id
                                    (get-buffer-process
                                     (current-buffer)))))))))
-
-;; (defvar company-files--min-depth 4
-;;   "Minimum depth from root before using `company-files'
-;; because is is painfully slow sometimes.")
-
-;; (defun company-files--skip-root-dir (ret-val)
-;;   (unless (and (s-prefix? (f-root) ret-val)
-;;                (> company-files--min-depth (f-depth ret-val)))
-;;     ret-val))
-;; (advice-add 'company-files--grab-existing-name :filter-return #'company-files--skip-root-dir)
 
 (defun cel/kill-backward-shell ()
   (interactive)
@@ -39,33 +27,10 @@
     (delete-region (if (eq (point-at-bol) it) it (1+ it)) (point))))
 (evil-define-key 'insert shell-mode-map (kbd "C-w") #'cel/kill-backward-shell)
 
-
-(defun cel/company-dabbrev--skip-numbers (ret-val)
-  (unless (and ret-val
-               (s-matches? (rx bos (+ digit) eos) ret-val))
-    ret-val))
-(advice-add 'company-dabbrev--prefix :filter-return #'cel/company-dabbrev--skip-numbers)
-
-(defun cel/company-select-prev-or-comint-match-input (&optional _)
-  (when (and (eq major-mode 'shell-mode)
-             (eq company-selection 0))
-    (company-abort)
-    (call-interactively 'comint-previous-matching-input-from-input)))
-(advice-add 'company-select-previous :before-until #'cel/company-select-prev-or-comint-match-input)
-
-;; messing with removing ret to select candiates because it makes it very hard to use
-;; company in REPL's and org mode. Now just use `C-l'
-(with-eval-after-load "company"
-  (define-key company-active-map (kbd "RET") nil)
-  (define-key company-active-map [return] nil))
-
 (substitute-key-definition 'comint-previous-input 'comint-previous-matching-input-from-input shell-mode-map)
 (substitute-key-definition 'comint-next-input 'comint-next-matching-input-from-input shell-mode-map)
 (define-key shell-mode-map (kbd "C-S-k") 'comint-previous-prompt)
 (define-key shell-mode-map (kbd "C-S-j") 'comint-next-prompt)
-
-(with-eval-after-load 'company-dabbrev-code
-  (add-to-list 'company-dabbrev-code-modes 'comint-mode))
 
 (defun cel/shell-mode-hook ()
   (shell-dirtrack-mode 0)
@@ -89,19 +54,6 @@
 
 (spacemacs/make-layout-local 'shell-pop-last-shell-buffer-index
                              'shell-pop-last-shell-buffer-name)
-
-;; (use-package pcomplete-extension
-;;   :ensure t)
-
-
-;; (use-package bash-completion
-;;   :init
-;;   (add-hook 'shell-dynamic-complete-functions
-;;             'bash-completion-dynamic-complete))
-
-(spacemacs|defvar-company-backends shell-mode)
-(setq company-backends-shell-mode '((company-env company-command) company-async-files company-fish company-dabbrev-code))
-(spacemacs|add-company-hook shell-mode)
 
 (defun company-command--prefix ()
   (when (-contains? company-env-enabled-modes major-mode)

@@ -49,9 +49,6 @@ values."
      helm
      imenu-list
      syntax-checking
-     major-modes
-     config
-     shell-config
      (auto-completion :variables auto-completion-enable-sort-by-usage t)
      better-defaults
      evil-cleverparens
@@ -65,6 +62,10 @@ values."
      (evil-snipe :variables evil-snipe-enable-alternate-f-and-t-behaviors t)
      (shell :variables shell-default-shell 'shell)
      (spell-checking :variables spell-checking-enable-by-default nil)
+     ;; custom layers
+     major-modes
+     config
+     shell-config
      )
    ;; List of additional packages that will be installed without being
    ;; wrapped in a layer. If you need some configuration for these
