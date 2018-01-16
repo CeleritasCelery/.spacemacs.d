@@ -319,7 +319,6 @@ values."
   (add-to-list 'auto-mode-alist '("\\.vf\\'"      . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.hier\\'"    . verilog-mode))
   (add-to-list 'auto-mode-alist '("\\.rdl\\'"     . verilog-mode))
-  (add-to-list 'auto-mode-alist '("\\.inc\\'"     . reglist-mode))
   (add-to-list 'auto-mode-alist '("rc\\'"         . conf-unix-mode))
   (add-to-list 'interpreter-mode-alist '("gmake"  . makefile-mode))
 
@@ -340,6 +339,7 @@ values."
   ;; explicitly specified that a variable should be set before a package is loaded,
   ;; you should place your code here."
 
+  (add-to-list 'auto-mode-alist '("\\.inc\\'"     . reglist-mode))
   (setq company-plsense-executable "/nfs/site/home/tjhinckl/perl5/bin/plsense")
   (defconst lisp--prettify-symbols-alist
     '(("lambda" . ?λ)                   ; Shrink this
