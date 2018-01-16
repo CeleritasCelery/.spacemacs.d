@@ -461,8 +461,9 @@ values."
 
   (spacemacs/add-flycheck-hook 'verilog-mode)
 
-  ;; (require 'private-functions)
-  ;; (require 'shell-setup)
-  ;; (require 'org-setup)
+  (setq tramp-default-method "ssh")
+  (setq tramp-default-user "tjhinckl")
+  (when (configuration-layer/package-usedp 'evil-cleverparens)
+    (add-hook 'emacs-lisp-mode-hook 'evil-cleverparens-mode))
   )
 
