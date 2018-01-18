@@ -9,10 +9,6 @@
     realgud
     company
     (company-plsense :toggle (configuration-layer/package-usedp 'company))
-    ;; (company-plsense :location local)
-    ;; (perl-completion :toggle (configuration-layer/package-usedp 'auto-complete))
-    ;; (anything :toggle (configuration-layer/package-usedp 'perl-completion))
-    ;; (plsense :toggle (configuration-layer/package-usedp 'auto-complete))
     ))
 
 (defun perl/init-perl-mode ()
@@ -116,8 +112,8 @@
       (add-hook 'cperl-mode-hook
                 (lambda () (local-set-key (kbd "<tab>") 'indent-for-tab-command)))
       (add-hook 'cperl-mode-hook (lambda () (progn (modify-syntax-entry ?: "." (syntax-table))
-                                              (setq prettify-symbols-alist cperl--prettify-symbols-alist)
-                                              (prettify-symbols-mode))))
+                                                   (setq prettify-symbols-alist cperl--prettify-symbols-alist)
+                                                   (prettify-symbols-mode))))
 
       ;; Use less horrible colors for cperl arrays and hashes
       (set-face-attribute 'cperl-array-face nil :foreground  "#DD7D0A"    :background 'unspecified :weight 'unspecified)
@@ -141,10 +137,14 @@
       (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "hd" 'cperl-perldoc)
       (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "v" 'cperl-select-this-pod-or-here-doc)
 
+      (font-lock-add-keywords
+       'cperl-mode
+       '(("\\<repeat\\>" . font-lock-type-face)
+         ("\\_<\\(pass\\|set\\|comment\\|compare\\|flush\\|label\\|focus_tap\\|unfocus_tap\\|set_stf_packet\\|focus_stf\\|cycle\\)\\_>" . font-lock-keyword-face)))
       (font-lock-add-keywords 'cperl-mode
-                              '(("\\_<const\\|croak\\|carp\\|confess\\|cluck\\_>" . font-lock-keyword-face)))
+                      '(("\\_<const\\|croak\\|carp\\|confess\\|cluck\\_>" . font-lock-keyword-face)))
       (font-lock-add-keywords 'cperl-mode
-                              '(("\\_<say\\|any\\_>" . cperl-nonoverridable-face)))
+                      '(("\\_<say\\|any\\_>" . cperl-nonoverridable-face)))
       )))
 
 (defun perl/post-init-flycheck ()

@@ -4,3 +4,6 @@
 [submodule "journal"]
 	path = layers/journal
 	url = https://github.com/borgnix/spacemacs-journal.git
+[submodule "layers/perl/local/company-plsense"]
+	path = layers/perl/local/company-plsense
+	url = https://github.com/CeleritasCelery/company-plsense.git
