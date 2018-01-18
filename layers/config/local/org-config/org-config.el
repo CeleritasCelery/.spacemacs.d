@@ -20,21 +20,28 @@
 (defun cel/evil-org-todo-enter-insert-state (&rest args)
   (and (featurep 'evil-states)
        (evil-insert-state)))
-(advice-add 'org-insert-todo-heading :after #'cel/evil-org-todo-enter-insert-state)
+(advice-add 'org-insert-todo-heading-respect-content :after #'cel/evil-org-todo-enter-insert-state)
 
 (setq org-agenda-todo-ignore-scheduled 'future)
 
-(setq org-export-with-section-numbers 2
-      org-export-with-toc nil
-      org-export-with-sub-superscripts "{}"
-      org-export-preserve-breaks t
-      org-startup-folded nil
-      org-insert-heading-respect-content t
-      org-html-table-default-attributes '(:border "2" :rules "all" :frame "border"))
+(setq user-full-name "Troy Hinckley")
+
+;;; commenting this out so I can add these settings to the export file
+;;; I will keep them here till I am sure I don't need them
+;; (setq org-export-with-section-numbers 2
+;;       org-export-with-toc nil
+;;       org-export-with-sub-superscripts "{}"
+;;       org-export-with-priority t
+;;       org-export-preserve-breaks t
+;;       org-startup-folded nil
+;;       org-insert-heading-respect-content t
+;;       org-html-table-default-attributes '(:border "2" :rules "all" :frame "border"))
 
 (when (configuration-layer/package-usedp 'smartparens)
   (add-hook 'org-mode-hook 'smartparens-mode)
   (sp-local-pair 'org-mode "~" "~") ;; org code
+  (sp-local-pair 'org-mode "=" "=") ;; org literal
+  (sp-local-pair 'org-mode ":" ":") ;; org tag
   (sp-local-pair 'org-mode "*" "*"));; org bold)
 
 (setq org-journal-carryover-items nil)
