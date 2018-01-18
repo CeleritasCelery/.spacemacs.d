@@ -462,8 +462,12 @@ values."
 
   (spacemacs/add-flycheck-hook 'verilog-mode)
 
+  ;; TRAMP
   (setq tramp-default-method "ssh")
   (setq tramp-default-user "tjhinckl")
+  (setq tramp-inline-compress-start-size 1000000)
+  (tramp-set-completion-function "ssh" '((tramp-parse-sconfig "~/.ssh/config")))
+
   (when (configuration-layer/package-usedp 'evil-cleverparens)
     (add-hook 'emacs-lisp-mode-hook 'evil-cleverparens-mode))
   )
