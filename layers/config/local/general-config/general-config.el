@@ -382,4 +382,20 @@
   (advice-add 'helm-find-files-get-candidates
               :filter-return 'cel/helm-ff-dots-at-bottom))
 
+(defvar evil-v$-gets-eol nil)
+
+(evil-define-motion evil-end-of-line (count)
+  "Move the cursor to the end of the current line.
+If COUNT is given, move COUNT - 1 lines downward first."
+  :type inclusive
+  (move-end-of-line count)
+  (when evil-track-eol
+    (setq temporary-goal-column most-positive-fixnum
+          this-command 'next-line))
+  (unless (and (evil-visual-state-p) evil-v$-gets-eol)
+    (evil-adjust-cursor)
+    (when (eolp)
+      ;; prevent "c$" and "d$" from deleting blank lines
+      (setq evil-this-type 'exclusive))))
+
 (provide 'general-config)
