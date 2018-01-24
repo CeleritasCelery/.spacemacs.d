@@ -8,7 +8,7 @@
     flycheck
     realgud
     company
-    (company-plsense :toggle (configuration-layer/package-usedp 'company))
+    (company-plsense :toggle (configuration-layer/package-usedp 'company) :location local)
     ))
 
 (defun perl/init-perl-mode ()
@@ -42,8 +42,19 @@
 
       (font-lock-add-keywords
        'perl-mode
-       '(("\\<repeat\\>" . font-lock-type-face)
-         ("\\_<\\(pass\\|set\\|comment\\|compare\\|flush\\|label\\|focus_tap\\|unfocus_tap\\|set_stf_packet\\|focus_stf\\|cycle\\)\\_>" . font-lock-keyword-face))))))
+       `((,(rx symbol-start "repeat" symbol-end) . font-lock-type-face)
+         ,(rx symbol-start (or "pass"
+                               "set"
+                               "comment"
+                               "compare"
+                               "flush"
+                               "label"
+                               "focus_tap"
+                               "unfocus_tap"
+                               "set_stf_packet"
+                               "focus_stf"
+                               "cycle")
+              symbol-end))))))
 
 (defun perl/init-cperl-mode ()
   (use-package cperl-mode
@@ -52,9 +63,23 @@
     :interpreter "perl"
     :interpreter "perl5"
     :init
+    (progn
+      ;; ligatures for hasklig
+
+      ;; ("==" . (?═ (Br . Bl) ?═))
+      ;; ("=>" . (?═ (tr . tc) ?═ (Br Br 70 0) ?>))
+
+      (setq
+       ;; highlight all scalar variables not just the instantiation
+       cperl-highlight-variables-indiscriminately t
+       cperl-indent-level 4        ; 4 spaces is the standard indentation
+       cperl-close-paren-offset -4 ; indent the closing paren back four spaces
+       cperl-continued-statement-offset 4 ; if a statement continues indent it to four spaces
+       cperl-indent-parens-as-block t)) ; parentheses are indented with the block and not with scope
 
     :config
     (progn
+      ;; don't highlight arrays and hashes inside comments
       (font-lock-remove-keywords
        'cperl-mode
        '(("\\(\\([@%]\\|\\$#\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)" 1
@@ -114,48 +139,61 @@
       ;; Use less horrible colors for cperl arrays and hashes
       (set-face-attribute 'cperl-array-face nil :foreground  "#DD7D0A"    :background 'unspecified :weight 'unspecified)
       (set-face-attribute 'cperl-hash-face nil  :foreground  "OrangeRed3" :background 'unspecified :weight 'unspecified)
-      (setq cperl-highlight-variables-indiscriminately t)
-
-      ;; cperl default settings
-      (setq cperl-indent-level 4) ;; 4 spaces is the standard indentation
-      (setq cperl-close-paren-offset -4) ;; indent the closing paren back four spaces
-      (setq cperl-continued-statement-offset 4) ;; if a statement continues indent it to four spaces
-      (setq cperl-indent-parens-as-block t) ;; parentheses are indented with the block and not with scope
 
       (spacemacs/declare-prefix "m=" "format")
-      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "==" 'spacemacs/perltidy-format)
-      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "=b" 'spacemacs/perltidy-format-buffer)
-      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "=f" 'spacemacs/perltidy-format-function)
-
-      (spacemacs/declare-prefix "mh" "perldoc")
       (spacemacs/declare-prefix "mg" "find-symbol")
-      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "hp" 'cperl-perldoc-at-point)
-      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "hd" 'cperl-perldoc)
-      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode "v" 'cperl-select-this-pod-or-here-doc)
+      (spacemacs/declare-prefix "mh" "perldoc")
+      (spacemacs/set-leader-keys-for-major-mode 'cperl-mode
+        "==" 'spacemacs/perltidy-format
+        "=b" 'spacemacs/perltidy-format-buffer
+        "=f" 'spacemacs/perltidy-format-function
+        "hh" 'cperl-perldoc-at-point
+        "hd" 'cperl-perldoc
+        "v" 'cperl-select-this-pod-or-here-doc)
 
       (font-lock-add-keywords
        'cperl-mode
-       '(("\\<repeat\\>" . font-lock-type-face)
-         ("\\_<\\(pass\\|set\\|comment\\|compare\\|flush\\|label\\|focus_tap\\|unfocus_tap\\|set_stf_packet\\|focus_stf\\|cycle\\)\\_>" . font-lock-keyword-face)))
-      (font-lock-add-keywords 'cperl-mode
-                      '(("\\_<const\\|croak\\|carp\\|confess\\|cluck\\_>" . font-lock-keyword-face)))
-      (font-lock-add-keywords 'cperl-mode
-                      '(("\\_<say\\|any\\_>" . cperl-nonoverridable-face)))
-      )))
+       `(,(rx symbol-start (or "pass"
+                               "set"
+                               "comment"
+                               "compare"
+                               "flush"
+                               "label"
+                               "focus_tap"
+                               "unfocus_tap"
+                               "set_stf_packet"
+                               "focus_stf"
+                               "cycle"
+                               "const"
+                               "croak"
+                               "carp"
+                               "confess"
+                               "cluck")
+              symbol-end)
+         (,(rx symbol-start "repeat" symbol-end) . font-lock-type-face)
+         (,(rx symbol-start (or "say" "any") symbol-end) . cperl-nonoverridable-face))))))
 
 (defun perl/post-init-flycheck ()
   (spacemacs/add-flycheck-hook 'cperl-mode)
   (setenv "SPF_ROOT" "/p/hdk/cad/spf/latest")
-  (setenv "GLOBAL_TOOLS" "/nfs/site/proj/dpg/tools")
   (setenv "SPF_PERL_LIB" "/p/hdk/cad/spf/latest/lib/perl5")
-  (setenv "XWEAVE_REPO_ROOT" "/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a")
+  (setenv "GLOBAL_TOOLS" "/nfs/site/proj/dpg/tools")
+  (setenv "XWEAVE_REPO_ROOT" "/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww43a")
+  (setenv "IDS_HOME" "/p/hdk/rtl/cad/x86-64_linux26/dteg/ideas_shell/0.15.1")
+
+  ;; ISC required variables
+  (setenv "RTL_CAD_ROOT" "/p/hdk/rtl/cad/x86-64_linux26")
+  (setenv "RTL_PROJ_CFG" "/p/hdk/rtl/proj_tools/proj_cfg")
+  (setenv "CFG_PROJECT" "shdk74")
+  (setenv "RTL_PROJ_BIN" "/p/hdk/rtl/proj_tools/proj_binx/shdk74/latest")
+  (setenv "RTL_PROJ_TOOLS" "/p/hdk/rtl/proj_tools")
+
   (setq flycheck-perl-executable "/usr/intel/pkgs/perl/5.14.1/bin/perl")
   (setq flycheck-perl-perlcritic-executable "/usr/intel/pkgs/perl/5.14.1-threads/bin/perlcritic")
-  (dolist (path '("/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5"
-                  "/p/hdk/rtl/ip_releases/shdk74/chassis_dft_val_global/v17ww37d/scripts"
-                  "/p/hdk/cad/spf/latest/lib/perl5"
-                  "/nfs/site/proj/dpg/tools"))
-    (add-to-list 'flycheck-perl-include-path path)))
+  (setq flycheck-perl-include-path '("/p/hdk/cad/spf/latest/lib/perl5" ;; SPF library
+                                     "../lib/perl5" ;; DTEG ultiscan
+                                     "../../lib/perl5" ;; DTEG STF
+                                     ".."))) ;; library files need to see the library ¯\_(ツ)_/¯
 
 (defun perl/post-init-smartparens ()
   (sp-local-pair 'perl-mode "'" nil :actions nil)
@@ -177,39 +215,7 @@
   (use-package company-plsense
     :defer t
     :init
-    (push 'company-plsense company-backends-cperl-mode)
-    (setenv "PERL5LIB" "/nfs/site/home/tjhinckl/perl5/lib/perl5:/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5:/p/hdk/cad/spf/latest/lib/perl5:/nfs/site/proj/dpg/tools")))
+    (push 'company-plsense company-backends-cperl-mode)))
 
 (defun perl/post-init-company ()
   (spacemacs|add-company-hook cperl-mode))
-
-
-;; (defun perl/init-anything ()
-;;   (use-package anything))
-
-;; (defun perl/init-perl-completion ()
-;;   (use-package perl-completion
-;;     :config
-;;     (progn
-;;       (setq plcmp-default-lighter  "")
-;;       (add-hook
-;;        'cperl-mode-hook
-;;        (lambda ()
-;;          (auto-complete-mode t)
-;;          (perl-completion-mode t)
-;;          (make-variable-buffer-local 'ac-sources)
-;;          (setq ac-sources
-;;                '(ac-source-perl-completion)))))))
-
-;; (defun perl/init-plsense ()
-;;   (use-package plsense
-;;     :defer t
-;;     :init
-;;     (progn
-;;       (setenv "PERL5LIB" "/nfs/site/home/tjhinckl/perl5/lib/perl5:/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww14a/lib/perl5:/p/hdk/cad/spf/latest/lib/perl5:/nfs/site/proj/dpg/tools")
-;;       (setenv "PATH" (concat (getenv "PATH") ":/nfs/site/home/tjhinckl/perl5/bin"))
-;;       (plsense-config-default)
-;;       (spacemacs/set-leader-keys-for-major-mode 'cperl-mode
-;;         "p" 'plsense-popup-help
-;;         "h" 'plsense-display-help-buffer
-;;         "d" 'plsense-jump-to-definition))))
