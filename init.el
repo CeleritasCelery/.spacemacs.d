@@ -274,7 +274,7 @@ values."
    dotspacemacs-line-numbers t
    ;; Code folding method. Possible values are `evil' and `origami'.
    ;; (default 'evil)
-   dotspacemacs-folding-method 'evil
+   dotspacemacs-folding-method 'origami
    ;; If non-nil smartparens-strict-mode will be enabled in programming modes.
    ;; (default nil)
    dotspacemacs-smartparens-strict-mode t
@@ -432,6 +432,7 @@ values."
     "jj" 'evil-avy-goto-word-or-subword-1
     "jc" 'evil-avy-goto-char
     "jC" 'evil-avy-goto-char-2
+    "jt" 'avy-goto-char-timer
 
     "ws" 'split-window-below-and-focus
     "wS" 'split-window-below
@@ -442,8 +443,10 @@ values."
     "ha" 'profiler-report
 
     "fa" 'save-buffer ;; i often miss type `SPC f s' and type `SPF s f'
+    "af" 'save-buffer ;; so add them both
     "gg" 'spacemacs/vcs-transient-state/body)
 
+  (setq avy-timeout-seconds 0.3)
   (when (configuration-layer/package-usedp 'rainbow-mode)
     (add-hook 'emacs-lisp-mode-hook 'rainbow-mode)) ;; color names are highlighted in that color
 
