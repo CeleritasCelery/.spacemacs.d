@@ -22,20 +22,22 @@
     ))
 
 (defun major-modes/init-itpp-mode ()
-  (use-package itpp-mode
-    :defer t))
+  (use-package itpp-mode))
 
 (defun major-modes/init-reglist-mode ()
-  (use-package reglist-mode
-    :defer t))
+  (use-package reglist-mode))
 
 (defun major-modes/init-sdgc-mode ()
-  (use-package sdgc-mode
-    :defer t))
+  (use-package sgdc-mode))
 
 (defun major-modes/init-spfspec-mode ()
   (use-package spfspec-mode
-    :defer t))
+    :config
+    (with-eval-after-load "highlight-numbers"
+      (puthash
+       'spfspec-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]]*?\\|b[01]*?\\|o[0-7]*?\\|d[[:digit:]]*?\\)\\_>"
+       highlight-numbers-modelist))))
+
 (defun major-modes/init-postsim-mode ()
   (use-package postsim-mode))
 

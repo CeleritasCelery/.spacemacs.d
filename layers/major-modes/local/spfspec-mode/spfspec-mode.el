@@ -2,10 +2,6 @@
 
 ;; Troy Hinckley troy.j.hinckley@intel.com
 
-;; Author: Nic Ferrier <nferrier@ferrier.me.uk>
-;; Keywords: lisp
-;; Version: 0.0.1
-
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -24,6 +20,9 @@
 ;; Put a description of the package here
 
 ;;; Code:
+
+(require 'f)
+(require 's)
 
 (setq spfspec-font-lock-keywords
       '(
@@ -65,6 +64,20 @@
       (if cur-indent
           (indent-line-to cur-indent)
         (indent-line-to 0))))) ; If we didn't see an indentation hint, then allow no indentation
+
+(defun spfspec-goto-definition ()
+  "Goto definition."
+  (interactive)
+  (let* ((thing (thing-at-point 'symbol t))
+         (type (if (s-contains? "stf.spfspec" (f-filename (buffer-file-name)))
+                   (concat "STF_STOP " thing)
+                 (if (s-matches? (rx (+ (any word "_")) (+ space) ": 'b" (+ (any "01")) " :")
+                                 (thing-at-point 'line t))
+                     (concat (rx (+ space)) thing " {")
+                   (concat "TAP " thing)))))
+    (when (search-forward-regexp (concat "^" type))
+      (recenter 1))))
+(spacemacs/set-leader-keys-for-major-mode 'spfspec-mode "g" #'spfspec-goto-definition)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.spfspec\\'" . spfspec-mode))

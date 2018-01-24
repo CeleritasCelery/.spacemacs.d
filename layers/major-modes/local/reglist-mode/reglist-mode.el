@@ -1,18 +1,23 @@
 (defface reglist-ace-args-face
-  '((t :background "#1d2436"))
+  '((t :background "#3d3446"))
   "face for ace_args"
   :group 'reglist-mode)
 (defvar reglist-ace-args-face 'reglist-ace-args-face)
 
 (setq reglist-font-lock-keywords
-      '(
-        ("^[[:space:]]*\\(.include\\)\\_>" 1 font-lock-function-name-face)
-        ("^[[:space:]]*[.+-]\\([[:alpha:]]+[[:alnum:]]*\\)\\_>" 1 font-lock-keyword-face)
+      `(("^[[:space:]]*[+]\\([[:alpha:]]+[[:alnum:]]*\\)\\_>" 1 font-lock-keyword-face)
+        ("^[[:space:]]*[-]\\([[:alpha:]]+[[:alnum:]]*\\)\\_>" 1 font-lock-type-face)
+        ("^[[:space:]]*[.]\\([[:alpha:]]+[[:alnum:]]*\\)\\_>" 1 font-lock-function-name-face)
         ("[$]\\([[:alnum:]][[:alnum:]_]*\\)\\>" 1 font-lock-variable-name-face)
         (".-\\([[:alpha:]][[:alnum:]_]*\\)-?" 1 font-lock-variable-name-face)
-        ("\\(-ace_args.*-ace_args-\\)" 1 (if (nth 4 (syntax-ppss))
-                                             'font-lock-comment-face
-                                           'reglist-ace-args-face) prepend)))
+        (,(rx "-"
+              (or "ace_args" "creed_uopt")
+              " " (0+ nonl) " -"
+              (or "ace_args" "creed_uopt")
+              "-") 0
+              (if (nth 4 (syntax-ppss))
+                  'font-lock-comment-face
+                'reglist-ace-args-face) prepend)))
 
 (defun reglist-syntax-propertize-function (start end)
   (goto-char start)
@@ -23,6 +28,9 @@
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.list\\'" . reglist-mode))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.inc\\'" . reglist-mode))
 
 ;;;###autoload
 (define-derived-mode reglist-mode prog-mode "list"
