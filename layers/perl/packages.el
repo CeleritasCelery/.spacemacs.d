@@ -35,9 +35,11 @@
 
       (add-hook 'perl-mode-hook
                 (lambda ()
+                  (setq prettify-symbols-alist perl5--prettify-symbols-alist)
+                  (prettify-symbols-mode)
                   (add-function :before (local 'syntax-propertize-function)
                                 #'my/perl-syntax-propertize-function)))
-      (add-hook 'perl-mode-hook #'prettify-symbols-mode)
+
       (font-lock-add-keywords
        'perl-mode
        '(("\\<repeat\\>" . font-lock-type-face)
@@ -50,12 +52,6 @@
     :interpreter "perl"
     :interpreter "perl5"
     :init
-    (defconst cperl--prettify-symbols-alist
-      '(("->" . ?→)
-        ("=>" . ?⇒)
-        ("<=" . ?≤)
-        (">=" . ?≥)
-        ("::" . ?∷)))
 
     :config
     (progn
@@ -109,11 +105,11 @@
             'font-lock-string-face) t)))
 
       ;; tab key will ident all marked code when tab key is pressed
-      (add-hook 'cperl-mode-hook
-                (lambda () (local-set-key (kbd "<tab>") 'indent-for-tab-command)))
-      (add-hook 'cperl-mode-hook (lambda () (progn (modify-syntax-entry ?: "." (syntax-table))
-                                                   (setq prettify-symbols-alist cperl--prettify-symbols-alist)
-                                                   (prettify-symbols-mode))))
+      (add-hook 'cperl-mode-hook (lambda ()
+                                   (local-set-key (kbd "<tab>") 'indent-for-tab-command)
+                                   (modify-syntax-entry ?: "." (syntax-table))
+                                   (setq prettify-symbols-alist perl5--prettify-symbols-alist)
+                                   (prettify-symbols-mode)))
 
       ;; Use less horrible colors for cperl arrays and hashes
       (set-face-attribute 'cperl-array-face nil :foreground  "#DD7D0A"    :background 'unspecified :weight 'unspecified)

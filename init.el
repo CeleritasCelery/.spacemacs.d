@@ -158,7 +158,7 @@ values."
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
-   dotspacemacs-default-font '("Source Code Pro" :size 11 :powerline-scale 1.1)
+   dotspacemacs-default-font '("Hasklig" :size 11 :powerline-scale 1.1)
    ;; The leader key
    dotspacemacs-leader-key "SPC"
    ;; The key used for Emacs commands (M-x) (after pressing on the leader key).
@@ -348,7 +348,7 @@ values."
   (add-hook 'emacs-lisp-mode-hook 'aggressive-indent-mode)
   (spacemacs|diminish orgtbl-mode)
 
-
+  (setq prettify-symbols-unprettify-at-point t)
   (add-to-list 'exec-path "/nfs/site/home/tjhinckl/local/bin" t)
 
   (setq-default tab-width 4 ;; colunms per "tab"
