@@ -38,7 +38,7 @@
           (shx-send-input)
         (let ((path (apply 'buffer-substring-no-properties
                            (--map (save-excursion
-                                    (funcall it "[:alnum:]$/._-")
+                                    (funcall it "[:alnum:]$/._-~")
                                     (point))
                                   '(skip-chars-backward skip-chars-forward)))))
           (goto-char (point-max))

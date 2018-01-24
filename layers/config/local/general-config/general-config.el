@@ -1,54 +1,5 @@
 ;; a collection of functions I wrote to assist in coding
 
-(use-package spfspec-mode
-  :mode "\\.spfspec\\'"
-  :config
-  (with-eval-after-load "highlight-numbers"
-    (puthash
-     'spfspec-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]]*?\\|b[01]*?\\|o[0-7]*?\\|d[[:digit:]]*?\\)\\_>"
-     highlight-numbers-modelist)))
-
-(use-package reglist-mode
-  :mode "\\.list\\'"
-  :config
-  (progn
-    (add-hook 'reglist-mode-hook 'color-identifiers-mode)
-    (with-eval-after-load "color-identifiers-mode"
-      (add-to-list
-       'color-identifiers:modes-alist
-       `(reglist-mode
-         . ("^[[:space:]]*[-.+]" "\\_<\\([[:alpha:]]+[[:alnum:]]*\\)\\_>"
-            (nil font-lock-keyword-face font-lock-function-name-face))))
-
-      (defun color-identifiers:colorize (limit)
-        (color-identifiers:scan-identifiers
-         (lambda (start end)
-           (let* ((identifier (buffer-substring-no-properties start end))
-                  (hex (color-identifiers:color-identifier identifier)))
-             (when hex
-               (put-text-property start end 'face `(:foreground ,hex))
-               ;; (add-face-text-property start end '(:underline t))
-               (add-face-text-property start end '(:weight bold))
-               (put-text-property start end 'color-identifiers:fontified t))))
-         limit)))))
-
-(use-package itpp-mode
-  :mode "\\.itpp\\'"
-  )
-
-(use-package sgdc-mode
-  :mode "\\.sgdc\\'"
-  :mode "\\.opt\\'"
-  )
-
-(use-package specman-mode
-  :mode "\\.e\\'"
-  :mode "\\.e3\\'"
-  :mode "\\.load\\'"
-  :mode "\\.ecom\\'"
-  :mode "\\.etst\\'"
-  )
-
 (defun highlight-lines ()
   (interactive)
   (set-face-attribute 'highlight nil :background "#293235" :foreground "#67b11d") ;; green
@@ -224,14 +175,6 @@
     (setq dut (completing-read "Select DUT: " (mapcar 'file-name-nondirectory duts)))
     (setenv "STF_SPFSPEC" (concat model-root "/tools/ipgen/" dut "/output/dft/verif/rtl/spf/" dut ".stf.spfspec"))
     (setenv "TAP_SPFSPEC" (concat model-root "/tools/ipgen/" dut "/output/dft/verif/rtl/spf/" dut ".tap.spfspec"))))
-
-(defun cel/create-persistant-shell (name)
-  "Create a presistent named NAME shell to layout."
-  (interactive "sShell Name: ")
-  (-let [shell-buf (s-lex-format "*${name}*")]
-    (shell shell-buf)
-    (persp-add-buffer shell-buf)))
-(spacemacs/set-leader-keys "os" #'cel/create-persistant-shell)
 
 (defun mc-column--col-at-point (point)
   (save-excursion (goto-char point) (current-column)))

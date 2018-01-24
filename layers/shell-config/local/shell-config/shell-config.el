@@ -2,6 +2,9 @@
 
 (require 'dash-functional)
 
+;; https://github.com/kyagi/shell-pop-el/issues/51
+(push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
+
 (setq shell-file-name "bash")
 (setq comint-scroll-to-bottom-on-input t)
 (setq comint-process-echoes t)
@@ -16,6 +19,13 @@
   str)
 
 
+(defun cel/create-persistant-shell (name)
+  "Create a presistent named NAME shell to layout."
+  (interactive "sShell Name: ")
+  (let ((shell-buf (s-lex-format "*${name}*")))
+    (shell shell-buf)
+    (persp-add-buffer shell-buf)))
+(spacemacs/set-leader-keys "os" #'cel/create-persistant-shell)
 
 (defun cel/kill-backward-shell ()
   (interactive)
