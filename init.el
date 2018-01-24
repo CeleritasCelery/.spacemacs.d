@@ -466,6 +466,16 @@ values."
   (setq tramp-default-user "tjhinckl")
   (setq tramp-inline-compress-start-size 1000000)
   (tramp-set-completion-function "ssh" '((tramp-parse-sconfig "~/.ssh/config")))
+  ;; (add-to-list 'tramp-remote-process-environment (format "DISPLAY=%s" (getenv "DISPLAY")))
+
+  (defun cel/tcsh-remote-shell (fn &rest args)
+    (if (file-remote-p default-directory)
+        (let ((shell-file-name "tcsh"))
+          (apply fn args))
+      (apply fn args)))
+
+  (advice-add 'shell-pop :around #'cel/tcsh-remote-shell)
+  (advice-add 'shell :around #'cel/tcsh-remote-shell)
 
   (when (configuration-layer/package-usedp 'evil-cleverparens)
     (add-hook 'emacs-lisp-mode-hook 'evil-cleverparens-mode))

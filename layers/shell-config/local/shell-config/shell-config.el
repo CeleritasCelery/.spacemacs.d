@@ -7,12 +7,15 @@
 (setq comint-process-echoes t)
 
 (defun track-shell-directory/procfs (str)
-  (prog1 str
-    (when (string-match comint-prompt-regexp str)
+  (when (and (string-match comint-prompt-regexp str)
+             (not (file-remote-p default-directory)))
       (cd (file-symlink-p
            (format "/proc/%s/cwd" (process-id
                                    (get-buffer-process
-                                    (current-buffer)))))))))
+                                  (current-buffer)))))))
+  str)
+
+
 
 (defun cel/kill-backward-shell ()
   (interactive)
