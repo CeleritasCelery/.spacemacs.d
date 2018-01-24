@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (c) 2012-2017 Troy Hinckley
 ;;
-;; Author: troy.j.hinckley <tjhinckl@sccj004228>
+;; Author: troy.j.hinckley
 ;; URL: https://github.com/syl20bnr/spacemacs
 ;;
 ;; This file is not part of GNU Emacs.
@@ -18,6 +18,7 @@
     (reglist-mode :location local)
     (sdgc-mode    :location local)
     (spfspec-mode :location local)
+    (postsim-mode :location local)
     ))
 
 (defun major-modes/init-itpp-mode ()
@@ -35,6 +36,8 @@
 (defun major-modes/init-spfspec-mode ()
   (use-package spfspec-mode
     :defer t))
+(defun major-modes/init-postsim-mode ()
+  (use-package postsim-mode))
 
 
 ;;; packages.el ends here
