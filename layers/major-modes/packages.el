@@ -22,16 +22,22 @@
     ))
 
 (defun major-modes/init-itpp-mode ()
-  (use-package itpp-mode))
+  (use-package itpp-mode
+    :mode "\\.itpp\\'"))
 
 (defun major-modes/init-reglist-mode ()
-  (use-package reglist-mode))
+  (use-package reglist-mode
+    :mode "\\.list\\'"
+    :mode "\\.inc\\'"))
 
 (defun major-modes/init-sdgc-mode ()
-  (use-package sgdc-mode))
+  (use-package sgdc-mode
+    :mode "\\.sgdc\\'"
+    :mode "\\.opt\\'"))
 
 (defun major-modes/init-spfspec-mode ()
   (use-package spfspec-mode
+    :mode "\\.spfspec\\'"
     :config
     (with-eval-after-load "highlight-numbers"
       (puthash
@@ -39,7 +45,8 @@
        highlight-numbers-modelist))))
 
 (defun major-modes/init-postsim-mode ()
-  (use-package postsim-mode))
+  (use-package postsim-mode
+    :mode (rx "postsim.log" (optional ".gz") eos)))
 
 
 ;;; packages.el ends here
