@@ -5,6 +5,10 @@
 ;;   :group 'itpp-mode)
 ;; (defvar itpp-x-face 'itpp-x-face)
 
+(defvar itpp--prettify-symbols-alist
+  `(("=>" . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE10A))))
+  "ligatures for the Hasklig font. Mapped to unicode open glyphs")
+
 ;; create the list for font-lock.
 ;; each class of keyword is given a particular face
 (setq itpp-font-lock-keywords
@@ -25,10 +29,15 @@
 ;;;###autoload
 (define-derived-mode itpp-mode prog-mode "ITPP"
   "Major mode for editing itpp files."
+  (setq prettify-symbols-alist itpp--prettify-symbols-alist)
   (modify-syntax-entry ?# "< b" itpp-mode-syntax-table)
   (modify-syntax-entry ?\n "> b" itpp-mode-syntax-table)
+  (modify-syntax-entry ?= "." itpp-mode-syntax-table)
+  (modify-syntax-entry ?> "." itpp-mode-syntax-table)
   (setq-local font-lock-defaults '(itpp-font-lock-keywords))
   (setq-local comment-start "# ")
   (setq-local comment-end ""))
+
+(add-hook 'itpp-mode-hook (lambda () (prettify-symbols-mode)))
 
 (provide 'itpp-mode)
