@@ -1,0 +1,4 @@
+# name: simregress options
+# key: sim
+# --
+simregress -l $1 -dut ${2:snr} -model ${3:snr} -P ${4:sc_normal3} -C 'SLES11SP4&&64G' -save

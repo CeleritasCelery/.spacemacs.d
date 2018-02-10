@@ -16,6 +16,7 @@
     shell
     shx
     company
+    yasnippet
     (shell-config :location local)
     (company-fish :location local)
     (company-async-files :location local)
@@ -26,6 +27,10 @@
 
 (defun shell-config/init-shx ()
   (use-package shx
+(spacemacs|extend-package yasnippet
+  :post-init
+  (remove-hook 'shell-mode-hook #'spacemacs/force-yasnippet-off))
+
     :defer t
     :init
     (spacemacs|diminish shx-mode " ⓧ" " x")
