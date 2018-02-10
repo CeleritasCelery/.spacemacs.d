@@ -34,6 +34,14 @@
     (general-config :location local)
     (org-config :location local)
     evil-lion
+    helm
+    ))
+
+(defun config/pre-init-helm ()
+  (spacemacs|use-package-add-hook helm
+    :post-config
+    (define-key helm-map (kbd "C-S-k") 'helm-beginning-of-buffer)
+    (define-key helm-map (kbd "C-S-j") 'helm-end-of-buffer)
     ))
 
 (defun config/init-evil-lion ()
