@@ -39,6 +39,39 @@
     (put 'cel/helm-ff-run-switch-to-shell 'helm-only t)
     (define-key helm-find-files-map (kbd "M-e") 'cel/helm-ff-run-switch-to-shell)))
 
+(spacemacs|extend-package shell-pop
+  :pre-init
+  ;; overload this function so that it is layout local
+  (defmacro make-shell-pop-command (func &optional shell)
+    "Create a function to open a shell via the function FUNC.
+  SHELL is the SHELL function to use (i.e. when FUNC represents a terminal)."
+    (let* ((name (symbol-name func)))
+      `(defun ,(intern (concat "spacemacs/shell-pop-" name)) (index)
+         ,(format (concat "Toggle a popup window with `%S'.\n"
+                          "Multiple shells can be opened with a numerical prefix "
+                          "argument. Using the universal prefix argument will "
+                          "open the shell in the current buffer instead of a "
+                          "popup buffer.") func)
+         (interactive "P")
+         (require 'shell-pop)
+         (when (equal '(4) index)
+           (setq index nil))
+         (shell-pop--set-shell-type
+          'shell-pop-shell-type
+          (list ,name
+                (concat "*" (spacemacs//current-layout-name) "-" (if (file-remote-p default-directory) "remote-" "") ,name "*")
+                (lambda nil (,func ,shell))))
+         (shell-pop index))))
+  :post-init
+  (progn
+    (defun cel/strip-tramp-cmd (args)
+      (-let [(cwd) args]
+        (list (s-chop-prefix (car (s-match
+                                   (rx bos "/" (1+ (any word "\\:@")) ":")
+                                   cwd))
+                             cwd))))
+    (advice-add 'shell-pop--cd-to-cwd :filter-args #'cel/strip-tramp-cmd)))
+
     :defer t
     :init
     (spacemacs|diminish shx-mode " ⓧ" " x")
