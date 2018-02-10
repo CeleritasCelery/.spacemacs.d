@@ -13,9 +13,9 @@
 
 (defconst shell-config-packages
   '(
-    shell
     shx
     company
+    shell-pop
     helm
     yasnippet
     (shell-config :location local)
@@ -27,8 +27,6 @@
 (defun shell-config/post-init-evil ()
   (evil-global-set-key 'normal (kbd "gf") 'cel/find-file-at-point))
 
-(defun shell-config/init-shx ()
-  (use-package shx
 (spacemacs|extend-package yasnippet
   :post-init
   (remove-hook 'shell-mode-hook #'spacemacs/force-yasnippet-off))
@@ -72,36 +70,31 @@
                              cwd))))
     (advice-add 'shell-pop--cd-to-cwd :filter-args #'cel/strip-tramp-cmd)))
 
+(spacemacs|use-package shx
     :defer t
     :init
     (spacemacs|diminish shx-mode " ⓧ" " x")
     (add-hook 'shell-mode-hook #'shx-mode)
     (add-hook 'shx-mode-hook (lambda () (setq comint-prompt-read-only t)))
     :config
-    (defun shx-send-input-or-copy-path ()
-      (interactive)
-      (if (shx-point-on-input-p)
-          (shx-send-input)
-        (let ((path (apply 'buffer-substring-no-properties
-                           (--map (save-excursion
-                                    (funcall it "[:alnum:]$/._-~")
-                                    (point))
-                                  '(skip-chars-backward skip-chars-forward)))))
-          (goto-char (point-max))
-          (insert path))))
-    (define-key shx-mode-map (kbd "C-<return>") #'shx-send-input-or-copy-path)))
+  (define-key shx-mode-map (kbd "C-<return>") #'shx-send-input-or-copy-path))
 
-(defun shell-config/post-init-company ()
+(spacemacs|extend-package company
+  :post-init
+  (progn
+    (setq company-backends-shell-mode '(company-env
+                                        company-command
+                                        company-async-files
+                                        company-fish
+                                        company-dabbrev-code
+                                        company-dabbrev))
+    (spacemacs|add-company-hook shell-mode))
+  :post-config
   ;; messing with removing ret to select candiates because it makes it very hard to use
   ;; company in REPL's and org mode. Now just use `C-l'
-  (spacemacs|use-package-add-hook company
-    :post-config
+  (progn
     (define-key company-active-map (kbd "RET") nil)
-    (define-key company-active-map [return] nil))
-
-  (setq company-backends-shell-mode '((company-env company-command) company-async-files company-fish company-dabbrev-code company-dabbrev))
-  (spacemacs|add-company-hook shell-mode)
-
+    (define-key company-active-map [return] nil)
   (defun cel/company-dabbrev--skip-numbers (ret-val)
     (unless (and ret-val
                  (s-matches? (rx bos (+ digit) eos) ret-val))
@@ -115,8 +108,11 @@
       (call-interactively 'comint-previous-matching-input-from-input)))
   (advice-add 'company-select-previous :before-until #'cel/company-select-prev-or-comint-match-input)
   (with-eval-after-load "company-dabbrev-code"
-    (add-to-list 'company-dabbrev-code-modes 'comint-mode))
-  )
+      (add-to-list 'company-dabbrev-code-modes 'comint-mode))))
+
+
+
+
 
 (defun shell-config/init-shell-config ()
   (use-package shell-config))
