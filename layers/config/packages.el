@@ -33,7 +33,18 @@
   '(
     (general-config :location local)
     (org-config :location local)
+    evil-lion
     ))
+
+(defun config/init-evil-lion ()
+  (use-package evil-lion
+    :ensure t
+    :bind (:map evil-normal-state-map
+                ("g l " . evil-lion-left)
+                ("g L " . evil-lion-right)
+                :map evil-visual-state-map
+                ("g l " . evil-lion-left)
+                ("g L " . evil-lion-right))))
 
 (defun config/init-general-config ()
   (use-package general-config))
