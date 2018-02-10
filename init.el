@@ -73,6 +73,11 @@ values."
    ;; configuration in `dotspacemacs/user-config'.
    dotspacemacs-additional-packages
    '(
+     ivy
+     ivy-hydra
+     swiper
+     counsel
+     quickrun
      dash-functional
      suggest
      helpful
@@ -274,7 +279,7 @@ values."
    dotspacemacs-line-numbers t
    ;; Code folding method. Possible values are `evil' and `origami'.
    ;; (default 'evil)
-   dotspacemacs-folding-method 'origami
+   dotspacemacs-folding-method 'evil
    ;; If non-nil smartparens-strict-mode will be enabled in programming modes.
    ;; (default nil)
    dotspacemacs-smartparens-strict-mode t
@@ -366,9 +371,11 @@ values."
         delete-by-moving-to-trash nil ;; don't move deleted files to my trash, which is in my home disk
         dired-recursive-deletes 'always ;; don't ask for confirmation to delete files
         vc-follow-symlinks t            ; follow symlinks
-        large-file-warning-threshold nil ;; Don't warn me when opening large files
+        large-file-warning-threshold 60000000 ;; above 60M prompt to open file literally or with vlf
         read-quoted-char-radix 16  ;; show unpritable chars in hex
         helm-buffer-max-length 60) ;; increase max buffer column for helm
+
+  (dired-async-mode 1)
 
   (spacemacs|use-package-add-hook company
     :post-config
@@ -468,6 +475,7 @@ values."
   (setq tramp-default-method "ssh")
   (setq tramp-default-user "tjhinckl")
   (setq tramp-inline-compress-start-size 1000000)
+  (setq tramp-copy-size-limit 1000000)
   (tramp-set-completion-function "ssh" '((tramp-parse-sconfig "~/.ssh/config")))
   ;; (add-to-list 'tramp-remote-process-environment (format "DISPLAY=%s" (getenv "DISPLAY")))
 
@@ -477,10 +485,29 @@ values."
           (apply fn args))
       (apply fn args)))
 
+  (setq helm-split-window-inside-p t)
   (advice-add 'shell-pop :around #'cel/tcsh-remote-shell)
   (advice-add 'shell :around #'cel/tcsh-remote-shell)
 
   (when (configuration-layer/package-usedp 'evil-cleverparens)
     (add-hook 'emacs-lisp-mode-hook 'evil-cleverparens-mode))
+
+  (setq sp-echo-match-when-invisible nil)
+  (setq dired-listing-switches "-alt")
+
+  (require 'vlf-setup)
+  (defun cel/disable-modes-json ()
+    (highlight-numbers-mode -1)
+    (rainbow-delimiters-mode -1))
+  (add-hook 'json-mode-hook 'cel/disable-modes-json)
+
+  ;; (let ((ensured 0)
+  ;;       (deferred 0))
+  ;;   (dolist (pkg package-selected-packages)
+  ;;     (if (featurep pkg)
+  ;;         (setq ensured (1+ ensured))
+  ;;       (setq deferred (1+ deferred))))
+  ;;   (message "ensured %d -- deferred %d" ensured deferred))
+
   )
 

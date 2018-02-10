@@ -3,7 +3,7 @@
 (require 'dash-functional)
 
 ;; https://github.com/kyagi/shell-pop-el/issues/51
-(push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
+(add-to-list 'display-buffer-alist (cons "\\*shell\\*" display-buffer--same-window-action))
 
 (setq shell-file-name "bash")
 (setq comint-scroll-to-bottom-on-input t)

@@ -39,6 +39,7 @@
   (modify-syntax-entry ?' "\"" reglist-mode-syntax-table)
   (modify-syntax-entry ?- "." reglist-mode-syntax-table)
   (modify-syntax-entry ?+ "." reglist-mode-syntax-table)
+  (modify-syntax-entry ?/ "." reglist-mode-syntax-table)
 
   ;; (color-identifiers-mode)
   (setq-local syntax-propertize-function #'reglist-syntax-propertize-function)
