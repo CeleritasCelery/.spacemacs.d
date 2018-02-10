@@ -18,6 +18,30 @@
                                   (current-buffer)))))))
   str)
 
+(defvar cel/layout-local-variables '(shell-pop-last-shell-buffer-index
+                                     shell-pop-last-shell-buffer-name))
+
+(defvar cel/layout-local-map (ht-create))
+
+(defun cel/make-layout-local (&rest var)
+  (--each var
+    (add-to-list 'cel/layout-local-variables it)))
+
+(defun cel/load-layout-local-vars (persp-name &rest _)
+  (when (featurep 'shell-pop)
+    (ht-set! cel/layout-local-map
+             (spacemacs//current-layout-name)
+             (--map (cons it (symbol-value it)) cel/layout-local-variables))
+    (--if-let (ht-get cel/layout-local-map persp-name)
+        (-each it
+          (-lambda ((var . val)) (set var val)))
+      (--each cel/layout-local-variables
+        (set it (default-value it))))))
+
+(cel/make-layout-local 'shell-pop-last-shell-buffer-index
+                       'shell-pop-last-shell-buffer-name)
+
+(advice-add 'persp-switch :before #'cel/load-layout-local-vars)
 
 (defun cel/create-persistant-shell (name)
   "Create a presistent named NAME shell to layout."
