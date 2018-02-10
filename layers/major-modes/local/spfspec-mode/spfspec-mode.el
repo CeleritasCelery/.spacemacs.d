@@ -1,4 +1,4 @@
-;;; spfspec-mode.el --- a e package   -*- lexical-binding: t; -*-
+;;; spfspec-mode.el --- support for spfspec object notation -*- lexical-binding: t; -*-
 
 ;; Troy Hinckley troy.j.hinckley@intel.com
 
@@ -21,16 +21,24 @@
 
 ;;; Code:
 
-(require 'f)
 (require 's)
+
+(defvar spfspec--prettify-symbols-alist
+  `(("&&" . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE100)))
+    ("||" . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE104)))
+    ("==" . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE107)))
+    ("->" . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE112)))
+    ("!=" . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE123)))
+    ("<=" . (?\s (Br . Bl) ?\s (Bc . Bc) ?< (Bc . Bc) ?_))
+    (">=" . (?\s (Br . Bl) ?\s (Bc . Bc) ?> (Bc . Bc) ?_)))
+  "ligatures for the Hasklig font. Mapped to open unicode glyphs")
 
 (setq spfspec-font-lock-keywords
       '(
         ("^[[:space:]]*\\(@[[:alnum:]_]+\\)\\_>" 1 font-lock-variable-name-face)
-        ("^[[:space:]]*\\([[:alnum:]_]+\\)[[:space:]]*:" 1 font-lock-keyword-face)
+        ("^[[:space:]]*\\([[:alnum:]_%]+\\)[[:space:]]*:" 1 font-lock-keyword-face)
         ("^[[:space:]]*\\([[:alnum:]_]+\\)[[:space:]]*{" 1 font-lock-type-face)
         ("^[[:space:]]*\\([[:alnum:][:space:]_]+\\)[[:space:]]*{" 1 font-lock-function-name-face)
-        ("[[:alnum:]]+\\(->\\)[[:alnum:]]+?" 1 font-lock-variable-name-face)
         ))
 
 
@@ -68,13 +76,13 @@
 (defun spfspec-goto-definition ()
   "Goto definition."
   (interactive)
-  (let* ((thing (thing-at-point 'symbol t))
-         (type (if (s-contains? "stf.spfspec" (f-filename (buffer-file-name)))
-                   (concat "STF_STOP " thing)
+  (let* ((symbol (thing-at-point 'symbol t))
+         (type (if (s-contains? "stf.spfspec" (buffer-file-name))
+                   (concat "STF_STOP " symbol)
                  (if (s-matches? (rx (+ (any word "_")) (+ space) ": 'b" (+ (any "01")) " :")
                                  (thing-at-point 'line t))
-                     (concat (rx (+ space)) thing " {")
-                   (concat "TAP " thing)))))
+                     (concat (rx (+ space)) symbol " {")
+                   (concat "TAP " symbol)))))
     (when (search-forward-regexp (concat "^" type))
       (recenter 1))))
 (spacemacs/set-leader-keys-for-major-mode 'spfspec-mode "g" #'spfspec-goto-definition)
@@ -85,12 +93,17 @@
 ;;;###autoload
 (define-derived-mode spfspec-mode prog-mode "SPF Spec"
   (setq tab-width 2)
+  (setq prettify-symbols-alist spfspec--prettify-symbols-alist)
   (setq-local indent-line-function 'spfspec-indent-line)
   (modify-syntax-entry ?\/ ". 12b" spfspec-mode-syntax-table)
   (modify-syntax-entry ?\n "> b" spfspec-mode-syntax-table)
+  (modify-syntax-entry ?- "." spfspec-mode-syntax-table)
+  (modify-syntax-entry ?> "." spfspec-mode-syntax-table)
   (setq-local font-lock-defaults '(spfspec-font-lock-keywords))
   (setq-local comment-start "// ")
   (setq-local comment-end ""))
+
+(add-hook 'spfspec-mode-hook (lambda () (prettify-symbols-mode)))
 
 (provide 'spfspec-mode)
 ;;; spfspec-mode.el ends here

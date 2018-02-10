@@ -38,10 +38,17 @@
 (defun major-modes/init-spfspec-mode ()
   (use-package spfspec-mode
     :mode "\\.spfspec\\'"
-    :config
+    :init
+    (with-eval-after-load "smartparens"
+      (sp-local-pair 'spfspec-mode "'" nil :actions nil))
     (with-eval-after-load "highlight-numbers"
       (puthash
-       'spfspec-mode "\\_<[[:digit:]].*?\\_>\\|'\\(?:h[[:xdigit:]]*?\\|b[01]*?\\|o[0-7]*?\\|d[[:digit:]]*?\\)\\_>"
+       'spfspec-mode (rx (or (and symbol-start (char digit) (*? nonl) symbol-end)
+                             (and "'" (or (and "h" (+? (in xdigit)))
+                                          (and "b" (+? (in (?0 . ?1))))
+                                          (and "o" (+? (in (?0 . ?7))))
+                                          (and "d" (+? (in digit))))
+                                  symbol-end)))
        highlight-numbers-modelist))))
 
 (defun major-modes/init-postsim-mode ()
