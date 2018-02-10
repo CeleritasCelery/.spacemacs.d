@@ -20,10 +20,11 @@
     (shell-config :location local)
     (company-fish :location local)
     (company-async-files :location local)
+    evil
     ))
 
-(defun shell-config/post-init-shell ()
-  )
+(defun shell-config/post-init-evil ()
+  (evil-global-set-key 'normal (kbd "gf") 'cel/find-file-at-point))
 
 (defun shell-config/init-shx ()
   (use-package shx
