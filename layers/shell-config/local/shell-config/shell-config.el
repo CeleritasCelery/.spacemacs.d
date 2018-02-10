@@ -9,14 +9,28 @@
 (setq comint-scroll-to-bottom-on-input t)
 (setq comint-process-echoes t)
 
+(defvar cel/dir-history nil
+  "previous shell directories")
+(make-variable-buffer-local 'cel/dir-history)
+
 (defun track-shell-directory/procfs (str)
-  (when (and (string-match comint-prompt-regexp str)
-             (not (file-remote-p default-directory)))
-      (cd (file-symlink-p
-           (format "/proc/%s/cwd" (process-id
-                                   (get-buffer-process
-                                  (current-buffer)))))))
+  (when (string-match comint-prompt-regexp str)
+    (--when-let (-some->> (current-buffer)
+                          (get-buffer-process)
+                          (process-id)
+                          (format "/proc/%s/cwd")
+                          (file-symlink-p)
+                          (cd))
+      (unless (equal it (car cel/dir-history))
+        (push it cel/dir-history))))
   str)
+
+(defun cel/select-shell-history ()
+  (interactive)
+  (goto-char (point-max))
+  (insert (concat "cd " (completing-read "directory:" cel/dir-history))))
+
+(define-key shell-mode-map (kbd "C-c C-j") 'cel/select-shell-history)
 
 (defvar cel/layout-local-variables '(shell-pop-last-shell-buffer-index
                                      shell-pop-last-shell-buffer-name))
