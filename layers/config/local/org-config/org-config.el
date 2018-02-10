@@ -8,12 +8,7 @@
 (setq org-todo-keywords '((sequence "TODO(t)" "DOING(g)" "|" "DONE(d)")
                           (sequence "|" "CANCELED(c)")))
 
-(defconst org--prettify-symbols-alist
-  '(("[#A]" . ?↑)
-    ("[#B]" . ?↔)
-    ("[#C]" . ?↓)))
-(add-hook 'org-mode-hook (lambda () (setq prettify-symbols-alist org--prettify-symbols-alist)
-                           (prettify-symbols-mode)
+(add-hook 'org-mode-hook (lambda ()
                            (spacemacs/toggle-truncate-lines-off)
                            (org-indent-mode 1)))
 
@@ -23,6 +18,9 @@
 (advice-add 'org-insert-todo-heading-respect-content :after #'cel/evil-org-todo-enter-insert-state)
 
 (setq org-agenda-todo-ignore-scheduled 'future)
+(setq org-enforce-todo-dependencies t)
+(setq org-agenda-dim-blocked-tasks 'invisible)
+(setq org-startup-folded nil)
 
 (setq user-full-name "Troy Hinckley")
 
@@ -41,10 +39,10 @@
   (add-hook 'org-mode-hook 'smartparens-mode)
   (sp-local-pair 'org-mode "~" "~") ;; org code
   (sp-local-pair 'org-mode "=" "=") ;; org literal
-  (sp-local-pair 'org-mode ":" ":") ;; org tag
-  (sp-local-pair 'org-mode "*" "*"));; org bold)
+  (sp-local-pair 'org-mode "*" "*"));; org bold
 
 (setq org-journal-carryover-items nil)
+(setq org-directory "~/org")
 (setq org-journal-dir (f-join org-directory "journal")) ;; keep all techical journals here
 (setq org-agenda-file-regexp (rx bos
                                  (or (1+ (in "0-9")) ;; numeric journal files
@@ -52,7 +50,7 @@
                                           (0+ nonl) ".org"))
                                  eos))
 
-(setq org-agenda-files (f-directories org-directory)) ;; where to search for TODO's
+(setq org-agenda-files (cons org-directory (f-directories org-directory))) ;; where to search for TODO's
 
 (spacemacs|define-transient-state org-journal
   :title "navigate org journals"
