@@ -431,15 +431,22 @@ values."
   (dolist (key '("<XF86AudioLowerVolume>" "<XF86AudioRaiseVolume>"))
     (define-key global-map (kbd key) (lambda () (interactive))))
 
+  (defun spacemacs/show-and-copy-buffer-filename-abs ()
+    "Show and copy the full path to the current file in the minibuffer."
+    (interactive)
+    ;; list-buffers-directory is the variable set in dired buffers
+    (let ((file-name (or (buffer-file-name) list-buffers-directory)))
+      (if file-name
+          (message (kill-new (file-truename file-name)))
+        (error "Buffer not visiting a file"))))
+
   (spacemacs/declare-prefix "o" "user-defined")
   (spacemacs/set-leader-keys
     "ou" 'untabify        ;; replace tabs with spaces
-    "ow" 'whitespace-mode ;; toggle whitespace mode
 
-    "jj" 'evil-avy-goto-word-or-subword-1
-    "jc" 'evil-avy-goto-char
+    "jj" 'avy-goto-char-timer
+    "jc" 'evil-avy-goto-word-or-subword-1
     "jC" 'evil-avy-goto-char-2
-    "jt" 'avy-goto-char-timer
 
     "ws" 'split-window-below-and-focus
     "wS" 'split-window-below
@@ -448,6 +455,11 @@ values."
 
     "hs" 'profiler-start
     "ha" 'profiler-report
+
+    "fy" 'spacemacs/show-and-copy-buffer-filename-abs
+    "fY" 'spacemacs/show-and-copy-buffer-filename
+
+    "br" 'rename-buffer
 
     "fa" 'save-buffer ;; i often miss type `SPC f s' and type `SPF s f'
     "af" 'save-buffer ;; so add them both
