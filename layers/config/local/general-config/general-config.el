@@ -369,11 +369,14 @@
     (apply fcn args)))
 
 (defun cel/helm-ff-dots-at-bottom (ret-val)
-  (if (listp ret-val)
+  (if (and (listp ret-val)
+           (not (equal (with-helm-buffer (buffer-name))
+                       "*Helm file completions*")))
       (-rotate (- (--count (s-ends-with? "." it) (-take 2 ret-val)))
                ret-val)
     ret-val))
 
+;; *helm file completions*
 (with-eval-after-load 'helm-files
   (advice-add 'helm-ff-filter-candidate-one-by-one
               :before-while 'cel/helm-ff-not-hardlink-p)
