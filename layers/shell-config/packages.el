@@ -16,6 +16,7 @@
     shell
     shx
     company
+    helm
     yasnippet
     (shell-config :location local)
     (company-fish :location local)
@@ -31,6 +32,12 @@
 (spacemacs|extend-package yasnippet
   :post-init
   (remove-hook 'shell-mode-hook #'spacemacs/force-yasnippet-off))
+
+(spacemacs|extend-package helm
+  :post-config
+  (progn
+    (put 'cel/helm-ff-run-switch-to-shell 'helm-only t)
+    (define-key helm-find-files-map (kbd "M-e") 'cel/helm-ff-run-switch-to-shell)))
 
     :defer t
     :init
