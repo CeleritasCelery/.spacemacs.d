@@ -65,12 +65,9 @@
   (define-key comint-mode-map
     [remap comint-dynamic-list-input-ring] #'helm-comint-input-ring))
 
-(spacemacs/make-layout-local 'shell-pop-last-shell-buffer-index
-                             'shell-pop-last-shell-buffer-name)
-
 (defun company-command--prefix ()
   (when (-contains? company-env-enabled-modes major-mode)
-    (let ((prefix (company-grab-symbol)))
+    (-when-let ((prefix (company-grab-symbol)))
       (when (and (not (s-contains? "/" prefix))
                  (not (s-prefix? "$" prefix))
                  (s-equals? prefix
@@ -164,7 +161,7 @@
 
 (defun company-env--prefix ()
   (when (-contains? company-env-enabled-modes major-mode) ;; not inside string
-    (-let* ((prefix (with-syntax-table (make-syntax-table (syntax-table))
+    (-when-let* ((prefix (with-syntax-table (make-syntax-table (syntax-table))
                       (modify-syntax-entry ?{ "_")
                       (company-grab-symbol)))
             (line (buffer-substring-no-properties
