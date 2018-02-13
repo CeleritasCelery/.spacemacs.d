@@ -277,46 +277,8 @@ _J_ ^ ^ _j_ ^ ^     _U_nmark all     _d_elete
 
 (require 'calc-bin) ;; converting radicies
 (require 'calc-ext) ;; big numbers
-(defun convert-hex-binary ()
-  "Converts hex to binary or vice versa and copies the results to the kill ring"
-  (interactive)
-  (let (inputStr numStr p1 p2 radix)
-    (save-excursion
-      (search-backward-regexp "[^0-9A-Fa-fx#'h]" nil t)
-      (forward-char)
-      (setq p1 (point))
-      (re-search-forward "[^0-9A-Fa-fx#'h]" nil t)
-      (backward-char)
-      (setq p2 (point)))
-    (setq inputStr (buffer-substring-no-properties p1 p2))
-    (setq radix ;; auto detect the radix of the number
-          (cond
-           ((string-prefix-p "'b" inputStr) 'bin)
-           ((string-prefix-p "'h" inputStr) 'hex)
-           ((string-prefix-p "0b" inputStr) 'bin)
-           ((string-prefix-p "0x" inputStr) 'hex)
-           ((string-prefix-p "#b" inputStr) 'bin)
-           ((string-prefix-p "#x" inputStr) 'hex)
-           ((string-match-p "[2-9a-fA-F]" inputStr) 'hex)
-           (t 'bin)))
-    (let ((case-fold-search nil)) ;; remove prefix radix identifier
-      (setq numStr (replace-regexp-in-string "^'b" "" inputStr)) ; SPF binary
-      (setq numStr (replace-regexp-in-string "^'h" "" numStr )) ; SPF hex
-      (setq numStr (replace-regexp-in-string "^0b" "" numStr )) ; C, Perl binary
-      (setq numStr (replace-regexp-in-string "^0x" "" numStr )) ; C, Perl hex
-      (setq numStr (replace-regexp-in-string "^#b" "" numStr )) ; elisp binary
-      (setq numStr (replace-regexp-in-string "^#x" "" numStr ))); elisp hex
-    (if (eq radix 'bin) ;; print, copy, and convert number
-        (message "Binary %s = Hex %s" numStr
-                 (let ((calc-number-radix 16))
-                   (kill-new (math-format-radix (string-to-number numStr 2)))))
-      (message "Hex %s = Binary %s" numStr
-               (let ((calc-number-radix 2))
-                 (kill-new (math-format-radix (string-to-number numStr 16))))))))
-(spacemacs/set-leader-keys "oc" 'convert-hex-binary)
 
-
-(defun name-radix (radix)
+(defun radix-name (radix)
   (cond
    ((eql radix 2)  "Binary")
    ((eql radix 3)  "Ternary")
@@ -335,43 +297,51 @@ _J_ ^ ^ _j_ ^ ^     _U_nmark all     _d_elete
    ((eql radix 16) "Hexadecimal")
    (t (format      "(base %d)" radix))))
 
+(defun cel/convert-radix-internal (str old-radix new-radix)
+  "internal function to convert between two radices"
+  (message "%s %s = %s %s"
+           (radix-name old-radix)
+           str
+           (radix-name new-radix)
+           (let ((calc-number-radix new-radix))
+             (kill-new (math-format-radix (string-to-number str old-radix))))))
+
+(defun convert-hex-binary ()
+  "Converts hex to binary or vice versa and copies the results to the kill ring"
+  (interactive)
+  (let* ((str (apply 'buffer-substring-no-properties
+                     (--map (save-excursion
+                              (funcall it "[:xdigit:]#'hx")
+                              (point))
+                            '(skip-chars-backward skip-chars-forward))))
+         (radix (--if-let (car (s-match (rx bos (or (and (0+ (any digit)) "'" (any "hb"))
+                                                    (and (any "0#") (any "bx")))) str))
+                    (progn (setq str (s-chop-prefix it str))
+                           (if (s-contains? "b" it) 'bin 'hex))
+                  'bin)))
+    (apply 'cel/convert-radix-internal str (if (eq radix 'bin) '(2 16) '(16 2)))))
+(spacemacs/set-leader-keys "oc" 'convert-hex-binary)
+
 (defun convert-radix (r1 r2)
   "Convert one radix to another and copy the result to the kill ring"
   (interactive "ncurrent radix: \nndesired radix: ")
-  (let (inputStr p1 p2)
-    (if (use-region-p)
-        (setq p1 (region-beginning)
-              p2 (region-end))
-      (save-excursion
-        (let (max-char valid-chars)
-          (setq
-           valid-chars
-           (if (<= r1 10)
-               (format "[^0-%d]" (- r1 1))
-             (progn
-               (setq
-                max-char
-                (cond
+  (let* ((valid-chars (if (<= r1 10)
+                          (format "0-%d" (- r1 1))
+                        (let ((max-char (cond
                  ((eql r1 11) "a")
                  ((eql r1 12) "b")
                  ((eql r1 13) "c")
                  ((eql r1 14) "d")
                  ((eql r1 15) "e")
-                 ((eql r1 16) "f")))
-               (format "[^0-9a-%sA-%s]" max-char (upcase max-char)))))
-          (search-backward-regexp valid-chars nil t)
-          (forward-char)
-          (setq p1 (point))
-          (re-search-forward valid-chars nil t)
-          (backward-char)
-          (setq p2 (point)))))
-    (setq inputStr (buffer-substring-no-properties p1 p2))
-    (message "%s %s = %s %s"
-             (name-radix r1)
-             inputStr
-             (name-radix r2)
-             (let ((calc-number-radix r2))
-               (kill-new (math-format-radix (string-to-number inputStr r1)))))))
+                                         ((eql r1 16) "f"))))
+                          (format "0-9a-%sA-%s" max-char (upcase max-char)))))
+         (str (apply 'buffer-substring-no-properties
+                     (--map (save-excursion
+                              (funcall it valid-chars)
+                              (point))
+                            '(skip-chars-backward skip-chars-forward)))))
+    (cel/convert-radix-internal str r1 r2)))
+
 (spacemacs/set-leader-keys "ox" 'convert-radix)
 
 (add-hook 'c-mode-common-hook
