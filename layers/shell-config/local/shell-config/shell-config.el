@@ -14,21 +14,31 @@
 (make-variable-buffer-local 'cel/dir-history)
 
 (defun track-shell-directory/procfs (str)
+  "use the proc filesytem to get the current directory.
+Works on remote shells as well if `shx' and `shx-cmd-set-pid' are used. The
+remote shell will need to echo it's PID in the rc file in the form of `shx'
+markup."
   (when (string-match comint-prompt-regexp str)
-    (--when-let (-some->> (current-buffer)
-                          (get-buffer-process)
-                          (process-id)
+    (--when-let (-some->> (cel/get-shell-pid)
                           (format "/proc/%s/cwd")
-                          (file-symlink-p)
-                          (cd))
+                          (concat (file-remote-p default-directory))
+                          file-symlink-p
+                          cd)
       (unless (equal it (car cel/dir-history))
         (push it cel/dir-history))))
   str)
 
+(defun cel/supress-hostkey-warning (str)
+  "EC machines issue a benign but really annoying warning that the EC people
+don't have the technical competence to fix"
+  ;; add_host_to_hostkeys: failed to open <missing path> - reason Permission denied
+  (if (string-match "add_host_to_hostkeys: failed to open" str) "" str))
+
 (defun cel/select-shell-history ()
   (interactive)
   (goto-char (point-max))
-  (insert (concat "cd " (completing-read "directory:" cel/dir-history))))
+  (insert (concat "cd " (s-chop-prefix (file-remote-p default-directory)
+                                       (completing-read "directory:" cel/dir-history)))))
 
 (define-key shell-mode-map (kbd "C-c C-j") 'cel/select-shell-history)
 
@@ -88,6 +98,8 @@
   (setq-local comint-prompt-regexp "^╰─→ \\'")
   (modify-syntax-entry ?= ".")
   (add-hook 'comint-preoutput-filter-functions
+            'cel/supress-hostkey-warning nil t)
+  (add-hook 'comint-preoutput-filter-functions
             'track-shell-directory/procfs nil t))
 (add-hook 'shell-mode-hook 'cel/shell-mode-hook)
 
@@ -104,8 +116,8 @@
     [remap comint-dynamic-list-input-ring] #'helm-comint-input-ring))
 
 (defun company-command--prefix ()
-  (when (-contains? company-env-enabled-modes major-mode)
-    (-when-let ((prefix (company-grab-symbol)))
+  (when (member major-mode company-env-enabled-modes)
+    (when-let (prefix (company-grab-symbol))
       (when (and (not (s-contains? "/" prefix))
                  (not (s-prefix? "$" prefix))
                  (s-equals? prefix
@@ -189,7 +201,7 @@
     (meta (company-command--meta arg))
     (annotation (format " (%s)" (get-text-property 0 'annotation arg)))))
 
-(defvar company-env-commands '("export" "set" "unset" "setenv" "unsetenv" "munge"))
+(defvar company-env-commands '("unset" "unsetenv" "munge"))
 (defvar company-env-enabled-modes '(shell-mode) "enabled modes.")
 
 (defun company-env--annotation (candidate)
@@ -198,23 +210,31 @@
       (format " (%s)" annotation))))
 
 (defun company-env--prefix ()
-  (when (-contains? company-env-enabled-modes major-mode) ;; not inside string
-    (-when-let* ((prefix (with-syntax-table (make-syntax-table (syntax-table))
+  (when (member major-mode company-env-enabled-modes)
+    (when-let (prefix (with-syntax-table (make-syntax-table (syntax-table))
                       (modify-syntax-entry ?{ "_")
                       (company-grab-symbol)))
-            (line (buffer-substring-no-properties
-                   (line-beginning-position)
-                   (point)))
-            ((cmd arg) (s-split (rx (+ space)) line t)))
       (unless (s-contains? "/" prefix)
+        (-let [(cmd arg)
+               (s-split (rx (+ space))
+                        (buffer-substring (line-beginning-position)
+                                          (point))
+                        t)]
         (cond ((s-prefix? "$" prefix) (let ((var (s-chop-prefixes '("$" "{") prefix)))
                                         (cons var (1+ (length var))))) ;; expansion
+                ;; When using unset export etc the variable name does not have a
+                ;; `$' so we need to make sure to watch for this senario
               ((and (s-equals? arg prefix)
-                    (-contains? company-env-commands cmd)) prefix) ;; export setenv etc
-              ((and (s-equals? cmd prefix) ;; used as command (or set)
+                      (-contains? company-env-commands cmd))
+                 prefix)
+                ;; used in asigment (i.e. FOO=bar). Force update the environment
+                ;; to ensure we are not using this backend when
+                ;; `company-command' would be better
+                ((and (s-equals? cmd prefix) ;; used in assignment
                     (progn (shell-env-sync 'env)
                            (--any? (s-prefix? prefix it)
-                                   process-environment))) prefix))))))
+                                     process-environment)))
+                 prefix)))))))
 
 (defun company-env--candidates (prefix)
   (shell-env-sync 'env)
@@ -256,20 +276,39 @@
 
 (advice-add 'getenv :before (lambda (&rest _) (shell-env-sync 'env)))
 
-(defun shell-env-get-file (type)
+(defun cel/get-shell-pid ()
+  (or cel/shell-pid
+      ;; we can only use the buffer process PID
+      ;; with local shells
+      (unless (file-remote-p default-directory)
   (-some->> (current-buffer)
-            (get-buffer-process)
-            (process-id)
-            (format (concat "%d." (symbol-name type)))
-            (f-join env-dump-dir)))
+                  get-buffer-process
+                  process-id))))
+
+(defvar cel/shell-pid nil
+  "Set this variable when the buffer process PID is not the shell PID.")
+(make-variable-buffer-local 'cel/shell-pid)
+
+(defun shx-cmd-set-pid (pid)
+  "(SAFE) sets env local shell PID.
+Add the following lines to (or equvilent) to your shell starup file
+
+echo \"<set-pid $$>\""
+  (setq cel/shell-pid pid))
+
+(defun shell-env-get-file (type)
+  (-some->> (cel/get-shell-pid)
+            (format (concat "%s." (symbol-name type)))
+            (f-join env-dump-dir)
+            (concat (file-remote-p default-directory))))
 
 (defun shell-env-update (type)
   (let ((var (alist-get type shell-env-vars)))
     (make-local-variable var)
     (-some->> (shell-env-get-file type)
-              (f-read-text)
-              (s-trim)
-              (s-lines)
+              f-read-text
+              s-trim
+              s-lines
               (set var))))
 
 (provide 'shell-config)
