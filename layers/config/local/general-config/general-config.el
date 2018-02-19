@@ -114,6 +114,7 @@
 (setenv "SPF_ROOT" "/p/hdk/cad/spf/latest")
 (setenv "IDS_HOME" "/p/hdk/rtl/cad/x86-64_linux26/dteg/ideas_shell/0.7.0")
 (setenv "GLOBAL_TOOLS" "/nfs/site/proj/dpg/tools")
+(setenv "DFT_GLOBAL_DIR" "~/workspace/chassis_dft_val_global")
 
 (setq ec-hdk (concat "/p/hdk/rtl/hdk.rc -cfg shdk" (if (eq (getenv "EC_SITE") "fc") "73" "74")))
 
@@ -220,6 +221,25 @@ _J_ ^ ^ _j_ ^ ^     _U_nmark all     _d_elete
             helm-visible-mark-overlays nil))
     (helm-force-update (helm-buffers--quote-truncated-buffer
                         (helm-get-selection)))))
+
+(defun helm-copy-to-kill-ring ()
+  "Copy selection or marked candidates to the kill ring.
+Note that the real values of candidates are copied and not the
+display values."
+  (interactive)
+  (with-helm-alive-p
+    (helm-run-after-exit
+     (lambda (cands)
+       (with-helm-current-buffer
+         (kill-new (mapconcat (lambda (c)
+                                (format "%s" (if (file-exists-p c)
+                                                 (file-truename c)
+                                               c)))
+                              cands "\n"))))
+     (helm-marked-candidates))))
+(define-key helm-map (kbd "C-c y") 'helm-copy-to-kill-ring)
+(put 'helm-copy-to-kill-ring 'helm-only t)
+
 
 (defun set-model ()
   (interactive)

@@ -421,6 +421,8 @@ values."
   (evil-global-set-key 'normal (kbd "C-b") 'backward-char) ;; allow backward char in normal state
   (evil-global-set-key 'normal (kbd "0"  ) 'evil-first-non-blank) ;; swap `^' and `0'
   (evil-global-set-key 'normal (kbd "^"  ) 'evil-digit-argument-or-evil-beginning-of-line)
+  (evil-global-set-key 'visual (kbd "0"  ) 'evil-first-non-blank)
+  (evil-global-set-key 'visual (kbd "^"  ) 'evil-digit-argument-or-evil-beginning-of-line)
   (evil-global-set-key 'normal (kbd "C-s") 'evil-search-next)
 
   (spacemacs/set-leader-keys "ii" 'aya-create)
@@ -433,13 +435,16 @@ values."
   (dolist (key '("<XF86AudioLowerVolume>" "<XF86AudioRaiseVolume>"))
     (define-key global-map (kbd key) (lambda () (interactive))))
 
-  (defun spacemacs/show-and-copy-buffer-filename-abs ()
+  (defun spacemacs/show-and-copy-buffer-filename (arg)
     "Show and copy the full path to the current file in the minibuffer."
-    (interactive)
+    (interactive "P")
     ;; list-buffers-directory is the variable set in dired buffers
-    (let ((file-name (or (buffer-file-name) list-buffers-directory)))
+    (let ((file-name (or (buffer-file-name)
+                         list-buffers-directory)))
       (if file-name
-          (message (kill-new (file-truename file-name)))
+          (message (kill-new (if (null arg)
+                                 (file-truename file-name)
+                               file-name)))
         (error "Buffer not visiting a file"))))
 
   (spacemacs/declare-prefix "o" "user-defined")
@@ -457,9 +462,6 @@ values."
 
     "hs" 'profiler-start
     "ha" 'profiler-report
-
-    "fy" 'spacemacs/show-and-copy-buffer-filename-abs
-    "fY" 'spacemacs/show-and-copy-buffer-filename
 
     "br" 'rename-buffer
 
@@ -488,10 +490,11 @@ values."
   ;; TRAMP
   (setq tramp-default-method "ssh")
   (setq tramp-default-user "tjhinckl")
+
+  ;; https://emacs.stackexchange.com/questions/29286/tramp-unable-to-open-some-files
   (setq tramp-inline-compress-start-size 1000000)
   (setq tramp-copy-size-limit 1000000)
   (tramp-set-completion-function "ssh" '((tramp-parse-sconfig "~/.ssh/config")))
-  ;; (add-to-list 'tramp-remote-process-environment (format "DISPLAY=%s" (getenv "DISPLAY")))
 
   (defun cel/tcsh-remote-shell (fn &rest args)
     (if (file-remote-p default-directory)
@@ -515,13 +518,31 @@ values."
     (rainbow-delimiters-mode -1))
   (add-hook 'json-mode-hook 'cel/disable-modes-json)
 
-  ;; (let ((ensured 0)
-  ;;       (deferred 0))
-  ;;   (dolist (pkg package-selected-packages)
-  ;;     (if (featurep pkg)
-  ;;         (setq ensured (1+ ensured))
-  ;;       (setq deferred (1+ deferred))))
-  ;;   (message "ensured %d -- deferred %d" ensured deferred))
 
+  (put 'flycheck-perl-executable 'safe-local-variable 'stringp)
+  (put 'cperl-indent-parens-as-block 'safe-local-variable 'booleanp)
+
+  ;; use less horrible ediff faces
+  (dolist (face '((current :background "#32322c" :foreground "#b1951d")
+                  (fine    :background "#293235" :foreground "#67b11d")
+                  (even    :background "#424245" :foreground "Gray70")
+                  (odd     :background "#454242" :foreground "Gray70")))
+    (dolist (num '(A B C))
+      (apply 'set-face-attribute (intern-soft (format "ediff-%s-diff-%s" (car face) num)) nil (cdr face))))
+
+  ;; https://github.com/syl20bnr/spacemacs/tree/master/layers/%2Bcompletion/auto-completion#improved-faces
+  (set-face-attribute 'company-tooltip-common nil
+                      :inherit 'company-tooltip
+                      :weight 'bold
+                      :underline nil)
+  (set-face-attribute 'company-tooltip-common-selection nil
+                      :inherit 'company-tooltip-selection
+                      :weight 'bold
+                      :underline nil)
+
+  ;; (set-face-attribute 'minimap-active-region-background nil  :inherit highlight)
+  ;; (set-face-attribute 'minimap-font-face nil                 :height 20 :family "DejaVu Sans Mono")
+
+  (global-linum-mode -1)
   )
 
