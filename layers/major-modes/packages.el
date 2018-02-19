@@ -28,6 +28,7 @@
 (defun major-modes/init-reglist-mode ()
   (use-package reglist-mode
     :mode "\\.list\\'"
+    :mode "\\.defaults\\'"
     :mode "\\.inc\\'"))
 
 (defun major-modes/init-sdgc-mode ()
