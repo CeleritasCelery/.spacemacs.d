@@ -176,6 +176,8 @@
 (defun perl/post-init-flycheck ()
   (spacemacs/add-flycheck-hook 'cperl-mode)
   (setenv "SPF_ROOT" "/p/hdk/cad/spf/latest")
+  (setenv "VALID_ROOT" "/p/hdk/rtl/valid/shdk74")
+  (setenv "VTLIB" "/p/hdk/rtl/valid/shdk74/lib")
   (setenv "SPF_PERL_LIB" "/p/hdk/cad/spf/latest/lib/perl5")
   (setenv "GLOBAL_TOOLS" "/nfs/site/proj/dpg/tools")
   (setenv "XWEAVE_REPO_ROOT" "/p/hdk/rtl/ip_releases/shdk74/xweave/v17ww43a")
