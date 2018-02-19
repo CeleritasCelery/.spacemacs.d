@@ -49,7 +49,9 @@ values."
      helm
      imenu-list
      syntax-checking
-     (auto-completion :variables auto-completion-enable-sort-by-usage t)
+     (auto-completion :variables auto-completion-enable-sort-by-usage t
+                      spacemacs-default-company-backends '((company-dabbrev-code company-keywords)
+                                                           company-async-files company-dabbrev))
      better-defaults
      evil-cleverparens
      ranger
