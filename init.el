@@ -333,7 +333,7 @@ values."
   (setq custom-file "~/.emacs.d/private/local/custom.el")
   (load custom-file 'noerror)
 
-  (setq magit-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git" ;; get around old magit git version problem
+  (setq magit-git-executable "/usr/intel/pkgs/git/2.12.0/bin/git" ;; get around old magit git version problem
         git-gutter+-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git" ;; get around old magit git version problem
         evil-want-abbrev-expand-on-insert-exit nil ;; don't preform an abbrev expansion on insert state exit
         exec-path-from-shell-check-startup-files nil)
