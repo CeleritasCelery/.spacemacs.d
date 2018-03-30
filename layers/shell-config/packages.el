@@ -21,8 +21,16 @@
     (shell-config :location local)
     (company-fish :location local)
     (company-async-files :location local)
+    company-shell
     evil
     ))
+
+(defun shell-config/post-init-company-shell ()
+  (setq company-backends-sh-mode
+        '(company-async-files company-shell
+                              (company-dabbrev-code company-keywords)
+                              company-dabbrev)))
+
 
 (defun shell-config/post-init-evil ()
   (evil-global-set-key 'normal (kbd "gf") 'cel/find-file-at-point))
