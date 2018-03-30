@@ -19,6 +19,7 @@
     (sdgc-mode    :location local)
     (spfspec-mode :location local)
     (postsim-mode :location local)
+    (tracker-mode :location local)
     ))
 
 (defun major-modes/init-itpp-mode ()
@@ -56,5 +57,8 @@
   (use-package postsim-mode
     :mode (rx "postsim.log" (optional ".gz") eos)))
 
+(defun major-modes/init-tracker-mode ()
+  (use-package tracker-mode
+    :mode (rx "TRK_PID_0x" (1+ (any xdigit)) ".out" (optional ".gz") eos)))
 
 ;;; packages.el ends here
