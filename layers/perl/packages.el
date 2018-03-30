@@ -100,34 +100,31 @@
 
       (font-lock-add-keywords
        'cperl-mode
-       '(("\\(\\([@%]\\|\\$#\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)" 1
-          (if (nth 4 (syntax-ppss))
-              'font-lock-comment-face
+       `((,(rx (group-n 1
+                        (group-n 2 (or (any "@%")
+                                       "$#"))
+                        (any alpha "_:")
+                        (0+ (any alnum "_:"))))
+          1
             (if (eq (char-after (match-beginning 2)) ?%)
                 'cperl-hash-face
               'cperl-array-face))
-          t)
          ("\\(\\([$@]+\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)[ \t]*\\([[{]\\)" 1
-          (if (nth 4 (syntax-ppss))
-              'font-lock-comment-face
             (if (= (- (match-end 2) (match-beginning 2)) 1)
                 (if (eq (char-after (match-beginning 3)) ?{)
                     'cperl-hash-face
                   'cperl-array-face)
               font-lock-variable-name-face))
-          t)
+         (,(rx (group-n 1 "@") "{")
+          1
+          (if (eq (char-after (match-beginning 1)) ?%)
+              'cperl-hash-face
+            'cperl-array-face))
          ("\\([]}\\\\%@>*&]\\|\\$[a-zA-Z0-9_:]*\\)[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
-          (2 (if (nth 4 (syntax-ppss))
-                 'font-lock-comment-face
-               'font-lock-string-face) t)
+          (2 'font-lock-string-face)
           ("\\=[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}" nil nil
-           (1 (if (nth 4 (syntax-ppss))
-                  'font-lock-comment-face
-                'font-lock-string-face) t)))
-         ("[[ \t{,(]\\(-?[a-zA-Z0-9_:]+\\)[ \t]*=>" 1
-          (if (nth 4 (syntax-ppss))
-              'font-lock-comment-face
-            'font-lock-string-face) t)))
+           (1 'font-lock-string-face)))
+         ("[[ \t{,(]\\(-?[a-zA-Z0-9_:]+\\)[ \t]*=>" 1 'font-lock-string-face)))
 
       ;; tab key will ident all marked code when tab key is pressed
       (add-hook 'cperl-mode-hook (lambda ()
