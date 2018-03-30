@@ -440,6 +440,26 @@ If COUNT is given, move COUNT - 1 lines downward first."
       ;; prevent "c$" and "d$" from deleting blank lines
       (setq evil-this-type 'exclusive))))
 
+(defvar cel/reg-dir "/nfs/site/home/tjhinckl/workspace/models/snr/tests/scan/custom/snr/snr/")
+(defun cel/goto-reg-dir ()
+  (interactive)
+  (helm-find-files-1 cel/reg-dir))
+(spacemacs/set-leader-keys "or" #'cel/goto-reg-dir)
+
+(defvar cel/itpp-espf-search-path '(""))
+(defun cel/switch-itpp-espf ()
+  (interactive)
+  (if-let ((ext (if (equal "itpp" (file-name-extension (buffer-file-name)))
+                    ".espf"
+                  ".itpp"))
+           (other-file (concat (file-name-base) ext))
+           (dir (seq-find (lambda (x)
+                            (file-exists-p
+                             (expand-file-name other-file x)))
+                          cel/itpp-espf-search-path)))
+      (switch-to-buffer (find-file-noselect (expand-file-name other-file dir)))
+    (error "unable to find matching itpp/espf file")))
+
 (defmacro cel/make-split-fn (orientation type source)
   `(defun ,(intern (concat "cel/split-" orientation "-with-" type)) ()
      (interactive)
