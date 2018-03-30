@@ -93,7 +93,7 @@ values."
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '(org-projectile projectile)
    ;; A list of packages that will not be installed and loaded.
-   dotspacemacs-excluded-packages '()
+   dotspacemacs-excluded-packages '(company-plsense)
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
    ;; `used-only' installs only explicitly used packages and uninstall any
@@ -379,12 +379,6 @@ values."
 
   (dired-async-mode 1)
 
-  (spacemacs|use-package-add-hook company
-    :post-config
-    (define-key company-active-map (kbd "<tab>") 'company-complete-common)
-    (define-key company-active-map (kbd "TAB") 'company-complete-common))
-
-
   (fset 'evil-visual-update-x-selection 'ignore) ;; don't update the primary when in evil
   (define-key global-map (kbd "<S-down-mouse-1>") 'mouse-save-then-kill) ;; use shift-click to mark a region
 
@@ -394,11 +388,14 @@ values."
   (define-key input-decode-map (kbd "C-i") (kbd "H-i"))
   (global-set-key (kbd "H-i") 'evil-jump-forward)
 
+  (when (configuration-layer/package-usedp 'flycheck)
   (add-to-list 'flycheck-clang-include-path "/nfs/site/home/tjhinckl/personal/verilator-3.884/include")
   (add-to-list 'flycheck-clang-include-path "/nfs/site/home/tjhinckl/workspace/dteg_tools-ultiscan/template/verif/tests/ids")
   (add-to-list 'flycheck-clang-include-path "/p/hdk/rtl/cad/x86-64_linux26/dteg/ideas_shell/0.15.1/ISC/include")
   (add-to-list 'flycheck-clang-args "-std=c++11")
   (setq flycheck-gcc-language-standard "c++11")
+    (spacemacs/add-flycheck-hook 'verilog-mode)
+    (put 'flycheck-perl-executable 'safe-local-variable 'stringp))
 
   (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p) ;; make scripts executable on save
 
@@ -480,22 +477,24 @@ values."
 
   (spacemacs/set-leader-keys-for-major-mode 'json-mode "p" 'jsons-print-path) ;; print the json path of object
 
-  (spacemacs/add-flycheck-hook 'verilog-mode)
 
   ;; TRAMP
+  (with-eval-after-load "tramp"
   (setq tramp-default-method "ssh")
   (setq tramp-default-user "tjhinckl")
+    ;; set TRAMP verbosity to warnings and errors only. default is level 3 which
+    ;; sends a message every time we connect to a remote host
+    (setq tramp-verbose 4)
 
   ;; https://emacs.stackexchange.com/questions/29286/tramp-unable-to-open-some-files
   (setq tramp-inline-compress-start-size 1000000)
   (setq tramp-copy-size-limit 1000000)
-  (tramp-set-completion-function "ssh" '((tramp-parse-sconfig "~/.ssh/config")))
-
   (defun cel/tcsh-remote-shell (fn &rest args)
     (if (file-remote-p default-directory)
         (let ((shell-file-name "tcsh"))
           (apply fn args))
       (apply fn args)))
+    (tramp-set-completion-function "ssh" '((tramp-parse-hosts "~/.ssh2/ssh2_config"))))
 
   (setq helm-split-window-inside-p t)
   (advice-add 'shell-pop :around #'cel/tcsh-remote-shell)
@@ -518,14 +517,18 @@ values."
   (put 'cperl-indent-parens-as-block 'safe-local-variable 'booleanp)
 
   ;; use less horrible ediff faces
+  (with-eval-after-load "ediff"
   (dolist (face '((current :background "#32322c" :foreground "#b1951d")
                   (fine    :background "#293235" :foreground "#67b11d")
                   (even    :background "#424245" :foreground "Gray70")
                   (odd     :background "#454242" :foreground "Gray70")))
     (dolist (num '(A B C))
-      (apply 'set-face-attribute (intern-soft (format "ediff-%s-diff-%s" (car face) num)) nil (cdr face))))
+        (apply 'set-face-attribute (intern-soft (format "ediff-%s-diff-%s" (car face) num)) nil (cdr face)))))
 
   ;; https://github.com/syl20bnr/spacemacs/tree/master/layers/%2Bcompletion/auto-completion#improved-faces
+  (with-eval-after-load 'company
+    (define-key company-active-map (kbd "<tab>") 'company-complete-common)
+    (define-key company-active-map (kbd "TAB") 'company-complete-common)
   (set-face-attribute 'company-tooltip-common nil
                       :inherit 'company-tooltip
                       :weight 'bold

@@ -226,8 +226,9 @@ display values."
                                                c)))
                               cands "\n"))))
      (helm-marked-candidates))))
-(define-key helm-map (kbd "C-c y") 'helm-copy-to-kill-ring)
-(put 'helm-copy-to-kill-ring 'helm-only t)
+(with-eval-after-load "helm"
+  (define-key helm-map (kbd "C-c y") 'helm-copy-to-kill-ring)
+  (put 'helm-copy-to-kill-ring 'helm-only t))
 
 
 (defun set-model ()
