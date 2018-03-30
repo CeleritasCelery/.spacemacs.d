@@ -37,11 +37,17 @@
 ;;       org-insert-heading-respect-content t
 ;;       org-html-table-default-attributes '(:border "2" :rules "all" :frame "border"))
 
-(when (configuration-layer/package-usedp 'smartparens)
-  (add-hook 'org-mode-hook 'smartparens-mode)
-  (sp-local-pair 'org-mode "~" "~") ;; org code
-  (sp-local-pair 'org-mode "=" "=") ;; org literal
-  (sp-local-pair 'org-mode "*" "*"));; org bold
+
+(add-hook 'org-mode-hook 'smartparens-mode)
+
+(with-eval-after-load 'smartparens-org
+  (sp-with-modes 'org-mode
+    (sp-local-pair "~" "~"
+                   :unless '(sp-point-after-word-p)
+                   :post-handlers '(("[d1]" "SPC" "/")))
+    (sp-local-pair ":" ":"
+                   :unless '(sp-point-after-word-p)
+                   :post-handlers '(("[d1]" "SPC")))))
 
 (setq org-journal-file-format "%Y-%m-%d")
 (setq org-journal-carryover-items nil)
