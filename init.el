@@ -76,6 +76,9 @@ values."
    ;; configuration in `dotspacemacs/user-config'.
    dotspacemacs-additional-packages
    '(
+     ox-twbs
+     (rsw-elisp :location (recipe :fetcher github :repo "rswgnu/rsw-elisp"))
+     elisp-def
      ivy
      ivy-hydra
      swiper
@@ -234,7 +237,7 @@ values."
    dotspacemacs-helm-use-fuzzy 'always
    ;; If non nil the paste micro-state is enabled. When enabled pressing `p`
    ;; several times cycle between the kill ring content. (default nil)
-   dotspacemacs-enable-paste-transient-state t
+   dotspacemacs-enable-paste-transient-state nil
    ;; Which-key delay in seconds. The which-key buffer is the popup listing
    ;; the commands bound to the current keystroke sequence. (default 0.4)
    dotspacemacs-which-key-delay 0.4
@@ -356,7 +359,6 @@ values."
   (spacemacs|diminish orgtbl-mode)
 
   (setq prettify-symbols-unprettify-at-point t)
-  (add-to-list 'exec-path "/nfs/site/home/tjhinckl/local/bin" t)
 
   (setq-default tab-width 4 ;; colunms per "tab"
                 require-final-newline t ;; always require a newline at end of the file for compatibility
@@ -375,9 +377,11 @@ values."
         vc-follow-symlinks t            ; follow symlinks
         large-file-warning-threshold 60000000 ;; above 60M prompt to open file literally or with vlf
         read-quoted-char-radix 16  ;; show unpritable chars in hex
+        evil-escape-key-sequence "jk" ;; just mash both of these
+        evil-escape-unordered-key-sequence t ;; lets me use jk or kj
         helm-buffer-max-length 60) ;; increase max buffer column for helm
 
-  (dired-async-mode 1)
+  (dired-async-mode)
 
   (fset 'evil-visual-update-x-selection 'ignore) ;; don't update the primary when in evil
   (define-key global-map (kbd "<S-down-mouse-1>") 'mouse-save-then-kill) ;; use shift-click to mark a region
@@ -439,6 +443,7 @@ values."
                                file-name)))
         (error "Buffer not visiting a file"))))
 
+  (setq avy-background t) ;; leaving this on for now to test the latency
   (spacemacs/declare-prefix "o" "user-defined")
   (spacemacs/set-leader-keys
     "ou" 'untabify        ;; replace tabs with spaces
@@ -466,8 +471,8 @@ values."
     (add-hook 'emacs-lisp-mode-hook 'rainbow-mode)) ;; color names are highlighted in that color
 
   (setq magit-blame-time-format "%yww%U.%u | %b,%d %H:%M") ;; use intel ww syntax
-  (setq magit-log-arguments '("--graph" "--color" "--decorate" "-n256"))
-  (setq magit-diff-section-arguments '("--ignore-space-change" "--ignore-all-space" "--no-ext-diff"))
+  ;; (setq magit-log-arguments '("--graph" "--color" "--decorate" "-n256"))
+  (setq magit-diff-section-arguments '("--ignore-space-change"))
 
   ;; Don't auto-pair single quote in verilog mode
   (when (configuration-layer/package-usedp 'smartparens)
@@ -478,6 +483,9 @@ values."
   (spacemacs/set-leader-keys-for-major-mode 'json-mode "p" 'jsons-print-path) ;; print the json path of object
 
 
+  (set-face-attribute 'font-lock-comment-face nil
+                      :background "#293038") ;; this looks better with 15 or 16 bit color
+  (blink-cursor-mode)
   ;; TRAMP
   (with-eval-after-load "tramp"
   (setq tramp-default-method "ssh")
@@ -506,14 +514,13 @@ values."
   (setq sp-echo-match-when-invisible nil)
   (setq dired-listing-switches "-alt")
 
-  (require 'vlf-setup)
+  ;; (require 'vlf-setup)
   (defun cel/disable-modes-json ()
     (highlight-numbers-mode -1)
     (rainbow-delimiters-mode -1))
   (add-hook 'json-mode-hook 'cel/disable-modes-json)
 
 
-  (put 'flycheck-perl-executable 'safe-local-variable 'stringp)
   (put 'cperl-indent-parens-as-block 'safe-local-variable 'booleanp)
 
   ;; use less horrible ediff faces
@@ -536,11 +543,15 @@ values."
   (set-face-attribute 'company-tooltip-common-selection nil
                       :inherit 'company-tooltip-selection
                       :weight 'bold
-                      :underline nil)
+                        :underline nil))
 
   ;; (set-face-attribute 'minimap-active-region-background nil  :inherit highlight)
   ;; (set-face-attribute 'minimap-font-face nil                 :height 20 :family "DejaVu Sans Mono")
 
-  (global-linum-mode -1)
-  )
 
+  (spacemacs/set-leader-keys "bp" 'spacemacs/buffer-transient-state/previous-buffer)
+  (spacemacs/set-leader-keys "bn" 'spacemacs/buffer-transient-state/next-buffer)
+
+  (global-linum-mode -1)
+
+  )
