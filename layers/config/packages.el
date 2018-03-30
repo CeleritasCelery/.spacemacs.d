@@ -43,9 +43,6 @@
     yatemplate
     ))
 
-(defun config/pre-init-helm ()
-  (spacemacs|use-package-add-hook helm
-    :post-config
 (defun config/init-yatemplate ()
   (use-package yatemplate
     :ensure t
@@ -99,9 +96,22 @@
       (define-key evil-lisp-state-map (kbd "x") 'evil-cp-delete-char-or-splice)
       (define-key evil-lisp-state-map (kbd "X") 'evil-cp-delete-char-or-splice-backwards))))
 
+(defun config/post-init-helm ()
+  (with-eval-after-load 'helm
     (define-key helm-map (kbd "C-S-k") 'helm-beginning-of-buffer)
-    (define-key helm-map (kbd "C-S-j") 'helm-end-of-buffer)
-    ))
+    (define-key helm-map (kbd "C-S-j") 'helm-end-of-buffer))
+  ;; add the file in clipboard to helm mini
+  (with-eval-after-load 'helm-buffers
+    (setq helm-source-clipboard-file
+          (helm-build-sync-source "Clipboard File"
+            :candidates (lambda ()
+                          (let ((kill (string-trim (substring-no-properties
+                                                    (current-kill 0)))))
+                            (when (and (file-name-absolute-p kill)
+                                       (file-exists-p kill))
+                              (list kill))))
+            :action 'helm-type-file-actions))
+    (add-to-list 'helm-mini-default-sources 'helm-source-clipboard-file)))
 
 (defun config/init-evil-lion ()
   (use-package evil-lion
