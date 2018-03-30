@@ -28,9 +28,12 @@
 
 (defun major-modes/init-reglist-mode ()
   (use-package reglist-mode
-    :mode "\\.list\\'"
+    :mode (rx ".list" (optional ".expand") eos)
     :mode "\\.defaults\\'"
-    :mode "\\.inc\\'"))
+    :mode "\\.inc\\'"
+    :config
+    (spacemacs/set-leader-keys-for-major-mode 'reglist-mode "c" #'reglist-creed-wrap)
+    (spacemacs/set-leader-keys-for-major-mode 'reglist-mode "a" #'reglist-ace-wrap)))
 
 (defun major-modes/init-sdgc-mode ()
   (use-package sgdc-mode

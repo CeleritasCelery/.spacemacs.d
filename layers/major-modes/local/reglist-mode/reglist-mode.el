@@ -23,8 +23,49 @@
   (goto-char start)
   (funcall
    (syntax-propertize-rules
-    ("'\\(\"'\\).*\\('\"\\)'" (1 ".")(2 ".")))
+    ("'\\(\"'\\).*\\('\"\\)'" (1 ".") (2 ".")))
    (point) end))
+
+(defvar reglist-test-type "dft_SPF_ITPP_generic")
+
+(defun reglist--wrap (format-str)
+  "Wrap the itpp in region with FORMAT-STR."
+  (let* ((bounds (if (use-region-p)
+                     (cons (region-beginning)
+                           (region-end))
+                   (bounds-of-thing-at-point 'paragraph)))
+         (start (car bounds))
+         (end (copy-marker (cdr bounds))))
+    (save-excursion
+      (goto-char start)
+      (while (and (re-search-forward (rx bol
+                                         (group-n 1 ;; group 1 contains the entire itpp path
+                                                  (+? nonl)
+                                                  (group-n 2 ;; group 2 contains only the test basename
+                                                           (1+ (any alnum "_")))
+                                                  ".itpp")
+                                         eol)
+                                     end :no-error)
+                  (< (match-beginning 1) end))
+        (let ((file (match-string 1))
+              (name (match-string 2)))
+          (replace-match (format format-str
+                                 reglist-test-type
+                                 reglist-test-type
+                                 file name)))
+        (forward-line)))))
+
+(defun reglist-creed-wrap ()
+  "Wrap the itpp in region with the creed calling convetion.
+Change `reglist-test-type' to change the test type."
+  (interactive)
+  (reglist--wrap "%s -ovm_test %s -creed_uopt ITPP_FILE=%s -creed_uopt- -dirtag %s"))
+
+(defun reglist-ace-wrap ()
+  "Wrap the itpp in region with the ace calling convetion.
+Change `reglist-test-type' to change the test type."
+  (interactive)
+  (reglist--wrap "%s -ovm_test %s -ace_args -simv_args '\"'+ITPP_FILE=%s'\"' -ace_args- -dirtag %s"))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.list\\'" . reglist-mode))
