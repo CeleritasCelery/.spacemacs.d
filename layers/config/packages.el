@@ -35,6 +35,7 @@
     (org-config :location local)
     evil-lion
     helm
+    (find-protocol-file :location local)
     ))
 
 (defun config/pre-init-helm ()
@@ -59,5 +60,13 @@
 
 (defun config/init-org-config ()
   (use-package org-config))
+
+(defun config/init-find-protocol-file ()
+  (use-package find-protocol-file
+    :commands cel/switch-itpp-espf
+    :init
+    (dolist (mode '(itpp-mode cperl-mode perl-mode))
+      (spacemacs/set-leader-keys-for-major-mode mode "s" #'cel/switch-itpp-espf))))
+
 
 ;;; packages.el ends here
