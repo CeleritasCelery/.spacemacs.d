@@ -38,11 +38,16 @@
     (find-protocol-file :location local)
     evil-lisp-state
     org-fancy-priorities
+    (highlight-quoted :location (recipe :fetcher github :repo "Fanael/highlight-quoted"))
     ))
 
 (defun config/pre-init-helm ()
   (spacemacs|use-package-add-hook helm
     :post-config
+(defun config/init-highlight-quoted ()
+  (use-package highlight-quoted
+    :hook (emacs-lisp-mode . highlight-quoted-mode)))
+
 (defun config/init-org-fancy-priorities ()
   (use-package org-fancy-priorities
     :hook (org-mode . org-fancy-priorities-mode)
