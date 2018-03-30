@@ -17,7 +17,7 @@
 (defun cel/get-path-at-point ()
   (apply 'buffer-substring-no-properties
          (--map (save-excursion
-                  (funcall it "-[:alnum:]$/._~")
+                  (funcall it "-[:alnum:]$/._~\"")
                   (point))
                 '(skip-chars-backward skip-chars-forward))))
 

@@ -80,7 +80,7 @@ don't have the technical competence to fix"
   (--when-let (-some->> (buffer-substring-no-properties (point) (point-at-bol))
                         (s-match (rx (or bos (any space "=/"))
                                      (0+ (not (any space "=/")))
-                                     (0+ (any space "/"))
+                                     (0+ (any space "=/"))
                                      eos))
                         (car)
                         (length)
