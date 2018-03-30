@@ -37,11 +37,19 @@
     helm
     (find-protocol-file :location local)
     evil-lisp-state
+    org-fancy-priorities
     ))
 
 (defun config/pre-init-helm ()
   (spacemacs|use-package-add-hook helm
     :post-config
+(defun config/init-org-fancy-priorities ()
+  (use-package org-fancy-priorities
+    :hook (org-mode . org-fancy-priorities-mode)
+    :diminish org-fancy-priorities-mode
+    :config
+    (setq org-fancy-priorities-list '("⬆" "⬅" "⬇" "☕"))))
+
 (defun config/post-init-evil-lisp-state ()
   (when (configuration-layer/package-usedp 'evil-cleverparens)
     (with-eval-after-load 'evil-lisp-state
