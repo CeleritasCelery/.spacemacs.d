@@ -46,21 +46,16 @@
 		(replace-match "\\1\n\\2")))))
 (spacemacs/set-leader-keys "xld" 'delete-duplicate-lines) ;; remove all duplicates
 
+(defun cel/open-file-in-clipboard ()
+  (interactive)
+  (helm-find-files-1 (string-trim (current-kill 0))))
+(spacemacs/set-leader-keys "of" #'cel/open-file-in-clipboard)
+
 (defun set-tab-width (x)
   "set the tab width for the current buffer"
   (interactive "ntab-width: ")
   (setq tab-width x))
 (spacemacs/set-leader-keys "ot" 'set-tab-width)
-
-(defun tab-mode ()
-  "Toggle between space and tab mode"
-  (interactive)
-  (if (eq (symbol-value 'indent-tabs-mode) nil)
-	  (progn (setq indent-tabs-mode t)
-			 (message "tab-mode enabled for buffer"))
-	(progn (setq indent-tabs-mode nil)
-		   (message "tab-mode disabled for buffer"))))
-(spacemacs/set-leader-keys "tt" 'tab-mode) ;; switch between tabs and spaces
 
 (defun my/evil-next-line (orig-fun &rest args)
   "check to see if we are in visual line mode"
@@ -76,15 +71,11 @@
 	(apply orig-fun args)))
 (advice-add 'evil-previous-line :around 'my/evil-previous-line)
 
-(defun my/open-file-in-clipboard ()
-  (interactive)
-  (helm-find-files-1 (replace-regexp-in-string "\\s-+" "" (substring-no-properties (current-kill 0)))))
-(spacemacs/set-leader-keys "of" #'my/open-file-in-clipboard)
-
 (defvar window-sizes
   '((large  . "1920x1200")
-    (wide   . "1920x1080")
-    (mobile . "1536x864"))
+    (mobile . "1536x864")
+    (wide . "3840x1200")
+    (other . "1920x1080"))
   "list of valid VNC dimensions")
 
 (defvar prev-vnc-size (caar window-sizes)
@@ -104,8 +95,6 @@
              (interactive)
              (vnc-resize ',name)))))
 
-
-
 (spacemacs/set-leader-keys "oii" #'vnc-prev)
 (spacemacs/set-leader-keys "oil" #'vnc-window-large)
 (spacemacs/set-leader-keys "oim" #'vnc-window-mobile)
@@ -114,7 +103,7 @@
 (setenv "SPF_ROOT" "/p/hdk/cad/spf/latest")
 (setenv "IDS_HOME" "/p/hdk/rtl/cad/x86-64_linux26/dteg/ideas_shell/0.7.0")
 (setenv "GLOBAL_TOOLS" "/nfs/site/proj/dpg/tools")
-(setenv "DFT_GLOBAL_DIR" "~/workspace/chassis_dft_val_global")
+(setenv "DFT_GLOBAL_DIR" "/nfs/site/home/tjhinckl/workspace/chassis_dft_val_global")
 
 (setq ec-hdk (concat "/p/hdk/rtl/hdk.rc -cfg shdk" (if (eq (getenv "EC_SITE") "fc") "73" "74")))
 
