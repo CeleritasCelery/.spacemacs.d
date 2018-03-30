@@ -440,4 +440,39 @@ If COUNT is given, move COUNT - 1 lines downward first."
       ;; prevent "c$" and "d$" from deleting blank lines
       (setq evil-this-type 'exclusive))))
 
+(defmacro cel/make-split-fn (orientation type source)
+  `(defun ,(intern (concat "cel/split-" orientation "-with-" type)) ()
+     (interactive)
+     (when-let ((old-buf (current-buffer))
+                (new-buf ,source))
+       (set-window-buffer (selected-window) old-buf)
+       (,(intern (concat "split-window-" orientation "-and-focus")))
+       (set-window-buffer (selected-window) new-buf))))
+
+(dolist (orientation '("right" "below"))
+  (dolist (source '(("buffer" (helm-mini))
+                    ("file" (helm-find-files-1 default-directory))))
+    (eval `(cel/make-split-fn ,orientation ,@source))))
+
+(spacemacs/set-leader-keys "ws" nil)
+(spacemacs/set-leader-keys "wv" nil)
+(spacemacs/declare-prefix "ws" "split-below")
+(spacemacs/declare-prefix "wv" "split-right")
+(spacemacs/set-leader-keys "wsf" 'cel/split-below-with-file)
+(spacemacs/set-leader-keys "wvf" 'cel/split-right-with-file)
+(spacemacs/set-leader-keys "wsb" 'cel/split-below-with-buffer)
+(spacemacs/set-leader-keys "wvb" 'cel/split-right-with-buffer)
+(spacemacs/set-leader-keys "wss" 'split-window-below-and-focus)
+(spacemacs/set-leader-keys "wvv" 'split-window-right-and-focus)
+
+
+(defun cel/copy-file ()
+  (interactive)
+  (let* ((destination (read-file-name "Write File: "))
+         (dir (file-name-directory destination)))
+    (unless (file-exists-p dir)
+      (make-directory dir :parents))
+    (write-file destination :confirm)))
+(spacemacs/set-leader-keys "fc" #'cel/copy-file)
+
 (provide 'general-config)
