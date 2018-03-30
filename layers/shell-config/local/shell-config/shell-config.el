@@ -115,14 +115,22 @@ don't have the technical competence to fix"
 (define-key shell-mode-map (kbd "C-S-k") 'comint-previous-prompt)
 (define-key shell-mode-map (kbd "C-S-j") 'comint-next-prompt)
 
+(defun cel/goto-cmd-line (&rest _)
+  (goto-char (point-max)))
+;; make this support paste when before the prompt
+
 (defun cel/shell-mode-hook ()
   (shell-dirtrack-mode 0)
   (setq-local comint-prompt-regexp "^╰─→ \\'")
   (modify-syntax-entry ?= ".")
+
+  (advice-add 'comint-previous-matching-input-from-input :before 'cel/goto-cmd-line)
+  (advice-add 'comint-next-matching-input-from-input :before 'cel/goto-cmd-line)
   (add-hook 'comint-preoutput-filter-functions
-            'cel/supress-hostkey-warning nil t)
+            'cel/supress-hostkey-warning (not :append) :local)
   (add-hook 'comint-preoutput-filter-functions
-            'track-shell-directory/procfs nil t))
+            'track-shell-directory/procfs (not :append) :local)
+  )
 (add-hook 'shell-mode-hook 'cel/shell-mode-hook)
 
 (defun cel/add-shell-to-layout ()
@@ -171,7 +179,7 @@ don't have the technical competence to fix"
 
 (defun cel/proc-to-string (proc &rest args)
   (let ((buffer (generate-new-buffer "proc")))
-    (apply #'call-process proc nil buffer nil args)
+    (apply #'call-process proc (null :in-file) buffer (null :display) args)
     (let ((output (s-trim (with-current-buffer buffer
                             (buffer-string)))))
       (kill-buffer buffer)
@@ -286,6 +294,8 @@ don't have the technical competence to fix"
 (defvar shell-env-vars '((env . process-environment)
                          (alias . process-aliases)
                          (func . process-functions)))
+(defvar process-aliases nil)
+
 
 (defun shell-env-sync (type)
   (-when-let* ((src-file (shell-env-get-file type))
