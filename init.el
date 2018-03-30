@@ -50,8 +50,9 @@ values."
      imenu-list
      syntax-checking
      (auto-completion :variables auto-completion-enable-sort-by-usage t
-                      spacemacs-default-company-backends '((company-dabbrev-code company-keywords)
-                                                           company-async-files company-dabbrev))
+                      spacemacs-default-company-backends '(company-async-files
+                                                           (company-dabbrev-code company-keywords)
+                                                           company-dabbrev))
      better-defaults
      evil-cleverparens
      ranger
