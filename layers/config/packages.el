@@ -39,11 +39,17 @@
     evil-lisp-state
     org-fancy-priorities
     (highlight-quoted :location (recipe :fetcher github :repo "Fanael/highlight-quoted"))
+    nameless
     ))
 
 (defun config/pre-init-helm ()
   (spacemacs|use-package-add-hook helm
     :post-config
+(defun config/init-nameless ()
+  (use-package nameless
+    :hook (emacs-lisp-mode . nameless-mode-from-hook)
+    :config (setq nameless-prefix "Ͽ")))
+
 (defun config/init-highlight-quoted ()
   (use-package highlight-quoted
     :hook (emacs-lisp-mode . highlight-quoted-mode)))

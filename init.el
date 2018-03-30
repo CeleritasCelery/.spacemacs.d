@@ -83,7 +83,6 @@ values."
      dash-functional
      suggest
      helpful
-     nameless
      json-mode
      json-snatcher
      eimp
@@ -384,11 +383,6 @@ values."
     (define-key company-active-map (kbd "<tab>") 'company-complete-common)
     (define-key company-active-map (kbd "TAB") 'company-complete-common))
 
-  (use-package nameless
-    :commands nameless-mode-from-hook
-    :init
-    (setq nameless-prefix "ϟ")
-    (add-hook 'emacs-lisp-mode-hook 'nameless-mode-from-hook))
 
   (fset 'evil-visual-update-x-selection 'ignore) ;; don't update the primary when in evil
   (define-key global-map (kbd "<S-down-mouse-1>") 'mouse-save-then-kill) ;; use shift-click to mark a region
