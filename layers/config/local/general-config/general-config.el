@@ -1,4 +1,4 @@
-;; a collection of functions I wrote to assist in coding
+;;; general-config.el --- a collection of functions I wrote to assist in coding  -*- lexical-binding: t -*-
 
 (defun highlight-lines ()
   (interactive)

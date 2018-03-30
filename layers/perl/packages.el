@@ -23,8 +23,7 @@
     :mode "\\.udf\\'"
     :mode "\\.hdl\\'"
     :mode "\\.rc\\'"
-    :mode "\\.cfg.template\\'"
-    :mode "\\.txt.template\\'"
+    :mode (rx "." (or "cfg" "txt") ".template" eos)
 
     :config
     (progn

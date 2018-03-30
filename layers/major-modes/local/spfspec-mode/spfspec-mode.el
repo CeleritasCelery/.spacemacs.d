@@ -34,12 +34,10 @@
   "ligatures for the Hasklig font. Mapped to open unicode glyphs")
 
 (setq spfspec-font-lock-keywords
-      '(
-        ("^[[:space:]]*\\(@[[:alnum:]_]+\\)\\_>" 1 font-lock-variable-name-face)
+      '(("^[[:space:]]*\\(@[[:alnum:]_]+\\)\\_>" 1 font-lock-variable-name-face)
         ("^[[:space:]]*\\([[:alnum:]_%]+\\)[[:space:]]*:" 1 font-lock-keyword-face)
         ("^[[:space:]]*\\([[:alnum:]_]+\\)[[:space:]]*{" 1 font-lock-type-face)
-        ("^[[:space:]]*\\([[:alnum:][:space:]_]+\\)[[:space:]]*{" 1 font-lock-function-name-face)
-        ))
+        ("^[[:space:]]*\\([[:alnum:][:space:]_]+\\)[[:space:]]*{" 1 font-lock-function-name-face)))
 
 
 (defun spfspec-indent-line ()
@@ -91,7 +89,7 @@
 (add-to-list 'auto-mode-alist '("\\.spfspec\\'" . spfspec-mode))
 
 ;;;###autoload
-(define-derived-mode spfspec-mode prog-mode "SPF Spec"
+(define-derived-mode spfspec-mode fundamental-mode "SPF Spec"
   (setq tab-width 2)
   (setq prettify-symbols-alist spfspec--prettify-symbols-alist)
   (setq-local indent-line-function 'spfspec-indent-line)
@@ -101,9 +99,11 @@
   (modify-syntax-entry ?> "." spfspec-mode-syntax-table)
   (setq-local font-lock-defaults '(spfspec-font-lock-keywords))
   (setq-local comment-start "// ")
-  (setq-local comment-end ""))
-
-(add-hook 'spfspec-mode-hook (lambda () (prettify-symbols-mode)))
+  (setq-local comment-end "")
+  (prettify-symbols-mode)
+  (linum-mode)
+  (when (featurep 'highlight-numbers)
+    (highlight-numbers-mode)))
 
 (provide 'spfspec-mode)
 ;;; spfspec-mode.el ends here
