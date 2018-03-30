@@ -42,28 +42,50 @@ don't have the technical competence to fix"
 
 (define-key shell-mode-map (kbd "C-c C-j") 'cel/select-shell-history)
 
-(defvar cel/layout-local-variables '(shell-pop-last-shell-buffer-index
-                                     shell-pop-last-shell-buffer-name))
+(defvar cel/layout-local-variables nil)
 
 (defvar cel/layout-local-map (ht-create))
 
-(defun cel/make-layout-local (&rest var)
-  (--each var
-    (add-to-list 'cel/layout-local-variables it)))
+(defun cel/make-variable-layout-local (&rest vars)
+  (cl-loop for (symbol default-value) on vars by 'cddr
+           do (add-to-list 'cel/layout-local-variables (cons symbol default-value))))
 
 (defun cel/load-layout-local-vars (persp-name &rest _)
-  (when (featurep 'shell-pop)
+  (let ((layout-local-vars (-filter 'boundp
+                                    (-map 'car cel/layout-local-variables))))
     (ht-set! cel/layout-local-map
              (spacemacs//current-layout-name)
-             (--map (cons it (symbol-value it)) cel/layout-local-variables))
-    (--if-let (ht-get cel/layout-local-map persp-name)
+             (--map (cons it (symbol-value it))
+                    layout-local-vars))
+    ;; load the default values
+    (--each layout-local-vars
+      (set it (alist-get it cel/layout-local-variables)))
+    ;; override with the previously bound values for the new layout
+    (--when-let (ht-get cel/layout-local-map persp-name)
         (-each it
-          (-lambda ((var . val)) (set var val)))
-      (--each cel/layout-local-variables
-        (set it (default-value it))))))
+        (-lambda ((var . val)) (set var val))))))
 
-(cel/make-layout-local 'shell-pop-last-shell-buffer-index
-                       'shell-pop-last-shell-buffer-name)
+(cel/make-variable-layout-local 'shell-pop-last-shell-buffer-index 1
+                                'shell-pop-last-shell-buffer-name ""
+                                'shell-pop-last-buffer nil)
+
+
+(defun cel/tcsh-remote-shell (fn &rest args)
+  (if (file-remote-p default-directory)
+      (let ((shell-file-name "tcsh"))
+        (apply fn args))
+    (apply fn args)))
+
+(advice-add 'shell-pop :around #'cel/tcsh-remote-shell)
+(advice-add 'shell :around #'cel/tcsh-remote-shell)
+
+(defun cel/shell-pop-restore-window ()
+  (unless (buffer-live-p shell-pop-last-buffer)
+    (setq shell-pop-last-buffer (window-buffer (get-mru-window (not :all-frames) :dedicated :not-selected))))
+  (unless (window-live-p shell-pop-last-window)
+    (setq shell-pop-last-window (get-buffer-window shell-pop-last-buffer))))
+
+(add-hook 'shell-pop-out-hook 'cel/shell-pop-restore-window)
 
 (advice-add 'persp-switch :before #'cel/load-layout-local-vars)
 
