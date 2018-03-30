@@ -30,8 +30,11 @@
     (progn
       ;; correct for Intel-style binary and hex notation
       (defalias 'my/perl-syntax-propertize-function
-        (syntax-propertize-rules
-         ("\\('\\)" (1 "."))))
+        (eval `(syntax-propertize-rules
+                (,(rx (group-n 1 "'")
+                      (1+ (not (any "';(){}[],")))
+                      (any ";(){}[],"))
+                 (1 ".")))))
 
       (add-hook 'perl-mode-hook
                 (lambda ()
