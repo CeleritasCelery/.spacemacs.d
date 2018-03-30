@@ -7,8 +7,11 @@
     (helm-exit-and-execute-action 'cel/helm-ff-switch-to-shell)))
 
 (defun cel/helm-ff-switch-to-shell (_)
+  (if (equal (buffer-name helm-current-buffer)
+             shell-pop-last-shell-buffer-name)
+      (shell-pop--cd-to-cwd helm-ff-default-directory)
   (let ((default-directory helm-ff-default-directory))
-    (spacemacs/default-pop-shell)))
+      (spacemacs/default-pop-shell))))
 
 
 (defun cel/get-path-at-point ()
