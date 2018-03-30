@@ -1,8 +1,19 @@
 ;; postsim-mode.el
+(defface postsim-pass-face
+  '((t :background "ForestGreen" :weight bold))
+  :group 'postsim-mode)
+(defvar postsim-pass-face 'postsim-pass-face)
+
+(defface postsim-fail-face
+  '((t :background "OrangeRed" :weight bold))
+  :group 'postsim-mode)
+(defvar postsim-fail-face 'postsim-fail-face)
 
 (setq postsim-font-lock-keywords
       `((,(rx bol (group "[" (1+ (in alnum " ")) "]")) 1 font-lock-type-face)
         (,(rx bol (0+ space) (group (1+ (in alnum " _")) ":")) 1 font-lock-keyword-face)
+        (,(rx bol (0+ space) "Status" (1+ space) ": " (group "PASS")) 1 postsim-pass-face)
+        (,(rx bol (0+ space) "Status" (1+ space) ": " (group "FAIL")) 1 postsim-fail-face)
         (,(rx bol (group "#" (1+ nonl))) 1 font-lock-warning-face)))
 
 ;;;###autoload
