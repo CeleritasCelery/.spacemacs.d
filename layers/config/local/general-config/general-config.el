@@ -441,11 +441,16 @@ If COUNT is given, move COUNT - 1 lines downward first."
       ;; prevent "c$" and "d$" from deleting blank lines
       (setq evil-this-type 'exclusive))))
 
-(defvar cel/reg-dir "/nfs/site/home/tjhinckl/workspace/models/snr/tests/scan/custom/snr/snr/")
-(defun cel/goto-reg-dir ()
+(defvar cel/bookmarked-dirs '((?r . "/nfs/site/home/tjhinckl/workspace/models/snr/tests/scan/custom/snr/snr/")
+                              (?s . "/nfs/site/home/tjhinckl/workspace/models/snr/scan_tests/1p0/")
+                              (?l . "/nfs/site/home/tjhinckl/workspace/models/snr/tests/scan/custom/")))
+(defun cel/goto-bookmarked-dir ()
   (interactive)
-  (helm-find-files-1 cel/reg-dir))
-(spacemacs/set-leader-keys "or" #'cel/goto-reg-dir)
+  (if-let ((key (read-char "Directory letter: "))
+           (dir (alist-get key cel/bookmarked-dirs)))
+      (helm-find-files-1 dir)
+    (user-error "Directory letter does not exist")))
+(spacemacs/set-leader-keys "od" #'cel/goto-bookmarked-dir)
 
 (defvar cel/itpp-espf-search-path '(""))
 (defun cel/switch-itpp-espf ()
