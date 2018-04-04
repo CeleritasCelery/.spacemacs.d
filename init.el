@@ -281,7 +281,7 @@ values."
    ;; If non nil line numbers are turned on in all `prog-mode' and `text-mode'
    ;; derivatives. If set to `relative', also turns on relative line numbers.
    ;; (default nil)
-   dotspacemacs-line-numbers t
+   dotspacemacs-line-numbers nil
    ;; Code folding method. Possible values are `evil' and `origami'.
    ;; (default 'evil)
    dotspacemacs-folding-method 'evil
@@ -393,11 +393,11 @@ values."
   (global-set-key (kbd "H-i") 'evil-jump-forward)
 
   (when (configuration-layer/package-usedp 'flycheck)
-  (add-to-list 'flycheck-clang-include-path "/nfs/site/home/tjhinckl/personal/verilator-3.884/include")
-  (add-to-list 'flycheck-clang-include-path "/nfs/site/home/tjhinckl/workspace/dteg_tools-ultiscan/template/verif/tests/ids")
-  (add-to-list 'flycheck-clang-include-path "/p/hdk/rtl/cad/x86-64_linux26/dteg/ideas_shell/0.15.1/ISC/include")
-  (add-to-list 'flycheck-clang-args "-std=c++11")
-  (setq flycheck-gcc-language-standard "c++11")
+    (add-to-list 'flycheck-clang-include-path "/nfs/site/home/tjhinckl/personal/verilator-3.884/include")
+    (add-to-list 'flycheck-clang-include-path "/nfs/site/home/tjhinckl/workspace/dteg_tools-ultiscan/template/verif/tests/ids")
+    (add-to-list 'flycheck-clang-include-path "/p/hdk/rtl/cad/x86-64_linux26/dteg/ideas_shell/0.15.1/ISC/include")
+    (add-to-list 'flycheck-clang-args "-std=c++11")
+    (setq flycheck-gcc-language-standard "c++11")
     (spacemacs/add-flycheck-hook 'verilog-mode)
     (put 'flycheck-perl-executable 'safe-local-variable 'stringp))
 
@@ -471,8 +471,7 @@ values."
     (add-hook 'emacs-lisp-mode-hook 'rainbow-mode)) ;; color names are highlighted in that color
 
   (setq magit-blame-time-format "%yww%U.%u | %b,%d %H:%M") ;; use intel ww syntax
-  ;; (setq magit-log-arguments '("--graph" "--color" "--decorate" "-n256"))
-  (setq magit-diff-section-arguments '("--ignore-space-change"))
+  (remove-hook 'magit-status-sections-hook 'magit-insert-recent-commits)
 
   ;; Don't auto-pair single quote in verilog mode
   (when (configuration-layer/package-usedp 'smartparens)
@@ -488,20 +487,20 @@ values."
   (blink-cursor-mode)
   ;; TRAMP
   (with-eval-after-load "tramp"
-  (setq tramp-default-method "ssh")
-  (setq tramp-default-user "tjhinckl")
+    (setq tramp-default-method "ssh")
+    (setq tramp-default-user "tjhinckl")
     ;; set TRAMP verbosity to warnings and errors only. default is level 3 which
     ;; sends a message every time we connect to a remote host
     (setq tramp-verbose 4)
 
-  ;; https://emacs.stackexchange.com/questions/29286/tramp-unable-to-open-some-files
-  (setq tramp-inline-compress-start-size 1000000)
-  (setq tramp-copy-size-limit 1000000)
-  (defun cel/tcsh-remote-shell (fn &rest args)
-    (if (file-remote-p default-directory)
-        (let ((shell-file-name "tcsh"))
-          (apply fn args))
-      (apply fn args)))
+    ;; https://emacs.stackexchange.com/questions/29286/tramp-unable-to-open-some-files
+    (setq tramp-inline-compress-start-size 1000000)
+    (setq tramp-copy-size-limit 1000000)
+    (defun cel/tcsh-remote-shell (fn &rest args)
+      (if (file-remote-p default-directory)
+          (let ((shell-file-name "tcsh"))
+            (apply fn args))
+        (apply fn args)))
     (tramp-set-completion-function "ssh" '((tramp-parse-hosts "~/.ssh2/ssh2_config"))))
 
   (setq helm-split-window-inside-p t)
@@ -525,24 +524,24 @@ values."
 
   ;; use less horrible ediff faces
   (with-eval-after-load "ediff"
-  (dolist (face '((current :background "#32322c" :foreground "#b1951d")
-                  (fine    :background "#293235" :foreground "#67b11d")
-                  (even    :background "#424245" :foreground "Gray70")
-                  (odd     :background "#454242" :foreground "Gray70")))
-    (dolist (num '(A B C))
+    (dolist (face '((current :background "#32322c" :foreground "#b1951d")
+                    (fine    :background "#293235" :foreground "#67b11d")
+                    (even    :background "#424245" :foreground "Gray70")
+                    (odd     :background "#454242" :foreground "Gray70")))
+      (dolist (num '(A B C))
         (apply 'set-face-attribute (intern-soft (format "ediff-%s-diff-%s" (car face) num)) nil (cdr face)))))
 
   ;; https://github.com/syl20bnr/spacemacs/tree/master/layers/%2Bcompletion/auto-completion#improved-faces
   (with-eval-after-load 'company
     (define-key company-active-map (kbd "<tab>") 'company-complete-common)
     (define-key company-active-map (kbd "TAB") 'company-complete-common)
-  (set-face-attribute 'company-tooltip-common nil
-                      :inherit 'company-tooltip
-                      :weight 'bold
-                      :underline nil)
-  (set-face-attribute 'company-tooltip-common-selection nil
-                      :inherit 'company-tooltip-selection
-                      :weight 'bold
+    (set-face-attribute 'company-tooltip-common nil
+                        :inherit 'company-tooltip
+                        :weight 'bold
+                        :underline nil)
+    (set-face-attribute 'company-tooltip-common-selection nil
+                        :inherit 'company-tooltip-selection
+                        :weight 'bold
                         :underline nil))
 
   ;; (set-face-attribute 'minimap-active-region-background nil  :inherit highlight)
