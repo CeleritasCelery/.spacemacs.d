@@ -436,7 +436,8 @@ values."
     (interactive "P")
     ;; list-buffers-directory is the variable set in dired buffers
     (let ((file-name (or (buffer-file-name)
-                         list-buffers-directory)))
+                         list-buffers-directory
+                         default-directory)))
       (if file-name
           (message (kill-new (if (null arg)
                                  (file-truename file-name)
@@ -518,7 +519,6 @@ values."
     (highlight-numbers-mode -1)
     (rainbow-delimiters-mode -1))
   (add-hook 'json-mode-hook 'cel/disable-modes-json)
-
 
   (put 'cperl-indent-parens-as-block 'safe-local-variable 'booleanp)
 
