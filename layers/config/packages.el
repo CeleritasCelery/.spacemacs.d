@@ -99,19 +99,7 @@
 (defun config/post-init-helm ()
   (with-eval-after-load 'helm
     (define-key helm-map (kbd "C-S-k") 'helm-beginning-of-buffer)
-    (define-key helm-map (kbd "C-S-j") 'helm-end-of-buffer))
-  ;; add the file in clipboard to helm mini
-  (with-eval-after-load 'helm-buffers
-    (setq helm-source-clipboard-file
-          (helm-build-sync-source "Clipboard File"
-            :candidates (lambda ()
-                          (let ((kill (string-trim (substring-no-properties
-                                                    (current-kill 0)))))
-                            (when (and (file-name-absolute-p kill)
-                                       (file-exists-p kill))
-                              (list kill))))
-            :action 'helm-type-file-actions))
-    (add-to-list 'helm-mini-default-sources 'helm-source-clipboard-file)))
+    (define-key helm-map (kbd "C-S-j") 'helm-end-of-buffer)))
 
 (defun config/init-evil-lion ()
   (use-package evil-lion
