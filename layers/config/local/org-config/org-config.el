@@ -37,6 +37,7 @@
 ;;       org-insert-heading-respect-content t
 ;;       org-html-table-default-attributes '(:border "2" :rules "all" :frame "border"))
 
+(setq org-html-postamble nil)
 
 (add-hook 'org-mode-hook 'smartparens-mode)
 
@@ -125,4 +126,19 @@
          "%?" :empty-lines 1)))
 (spacemacs/set-leader-keys "oo" 'org-capture)
 
+(defun cel:org-create-css-html-email-head ()
+  "Create the header with CSS for use with email"
+  (interactive)
+  (setq org-html-head
+        (concat
+         "<style type=\"text/css\">\n"
+         "<!--/*--><![CDATA[/*><!--*/\n"
+         (with-temp-buffer
+           (insert-file-contents
+            "~/org/org-html-themes/styles/email/css/email.css")
+           (buffer-string))
+         "/*]]>*/-->\n"
+         "</style>\n"))
+  t)
+(cel:org-create-css-html-email-head)
 (provide 'org-config)
