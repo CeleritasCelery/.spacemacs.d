@@ -141,4 +141,11 @@
          "</style>\n"))
   t)
 (cel:org-create-css-html-email-head)
+
+(with-eval-after-load 'org-src
+  (define-key org-src-mode-map (kbd "C-c C-c") 'org-edit-src-exit)
+  (define-key org-src-mode-map (kbd "C-c C-k") 'org-edit-src-abort)
+  (spacemacs/set-leader-keys-for-minor-mode 'org-src-mode
+    dotspacemacs-major-mode-leader-key nil))
+
 (provide 'org-config)
