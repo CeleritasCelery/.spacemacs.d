@@ -52,7 +52,7 @@
 (setq org-journal-file-format "%Y-%m-%d")
 (setq org-journal-carryover-items nil)
 (setq org-directory "~/org")
-(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
+(setq org-default-notes-file (concat org-directory "/dev/notes.org"))
 (setq org-journal-dir (expand-file-name "journal" org-directory)) ;; keep all techical journals here
 (setq org-agenda-file-regexp (rx bos
                                  (or (1+ (in "-" digit)) ;; numeric journal files
@@ -92,7 +92,8 @@
              buffer-list)))
 (advice-add 'helm-skip-boring-buffers :filter-return 'cel/filter-buffers)
 
-(setq org-agenda-files (--remove (s-contains? "org-html-themes" it)
+(setq org-agenda-files (--remove (or (string-match-p "journal" it)
+                                     (string-match-p "org-html-themes" it))
                                  (f-directories org-directory nil t))) ;; where to search for TODO's
 
 (spacemacs|define-transient-state org-journal
@@ -119,7 +120,9 @@
         ("n" "Note" entry (file+headline org-default-notes-file "Notes")
          "* %?" :empty-lines 1)
         ("N" "Note with Clipboard" entry (file+headline org-default-notes-file "Notes")
-         "* %?\n   %c" :empty-lines 1)))
+         "* %?\n   %c" :empty-lines 1)
+        ("e" "Email" plain (file+headline org-default-notes-file "email")
+         "%?" :empty-lines 1)))
 (spacemacs/set-leader-keys "oo" 'org-capture)
 
 (provide 'org-config)
