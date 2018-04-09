@@ -188,7 +188,6 @@ _J_ ^ ^ _j_ ^ ^     _U_nmark all     _d_elete
   ("d" helm-persistent-delete-marked)
   ("f" helm-follow-mode))
 
-(define-key helm-map (kbd "C-o") 'helm-like-unite/body)
 
 (defun helm-persistent-delete-marked ()
   "Kill buffer without quitting helm."
@@ -227,6 +226,7 @@ display values."
                               cands "\n"))))
      (helm-marked-candidates))))
 (with-eval-after-load "helm"
+  (define-key helm-map (kbd "C-o") 'helm-like-unite/body)
   (define-key helm-map (kbd "C-c y") 'helm-copy-to-kill-ring)
   (put 'helm-copy-to-kill-ring 'helm-only t))
 
