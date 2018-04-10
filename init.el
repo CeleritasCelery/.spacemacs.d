@@ -544,9 +544,8 @@ values."
                         :weight 'bold
                         :underline nil))
 
-  ;; (set-face-attribute 'minimap-active-region-background nil  :inherit highlight)
-  ;; (set-face-attribute 'minimap-font-face nil                 :height 20 :family "DejaVu Sans Mono")
-
+  ;; https://github.com/syl20bnr/spacemacs/issues/7516
+  (define-key ivy-minibuffer-map (kbd "TAB") 'ivy-alt-done)
 
   (spacemacs/set-leader-keys "bp" 'spacemacs/buffer-transient-state/previous-buffer)
   (spacemacs/set-leader-keys "bn" 'spacemacs/buffer-transient-state/next-buffer)
