@@ -96,7 +96,7 @@ values."
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '(org-projectile projectile)
    ;; A list of packages that will not be installed and loaded.
-   dotspacemacs-excluded-packages '(company-plsense)
+   dotspacemacs-excluded-packages '(company-plsense origami)
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
    ;; `used-only' installs only explicitly used packages and uninstall any
@@ -444,6 +444,9 @@ values."
                                file-name)))
         (error "Buffer not visiting a file"))))
 
+  (setq helm-ff-auto-update-initial-value nil) ;; testing this out for helm ff
+  (setq helm-ff-candidate-number-limit 1000)
+  (setq helm-ff-fuzzy-matching t)
   (setq avy-background t) ;; leaving this on for now to test the latency
   (spacemacs/declare-prefix "o" "user-defined")
   (spacemacs/set-leader-keys
@@ -514,7 +517,6 @@ values."
   (setq sp-echo-match-when-invisible nil)
   (setq dired-listing-switches "-alt")
 
-  ;; (require 'vlf-setup)
   (defun cel/disable-modes-json ()
     (highlight-numbers-mode -1)
     (rainbow-delimiters-mode -1))

@@ -494,13 +494,13 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
 (spacemacs/set-leader-keys "ws" 'cel/split-window-below)
 
 
-(defun cel/copy-file ()
+(defun cel:copy-file ()
   (interactive)
   (let* ((destination (read-file-name "Write File: "))
          (dir (file-name-directory destination)))
     (unless (file-exists-p dir)
       (make-directory dir :parents))
     (write-file destination :confirm)))
-(spacemacs/set-leader-keys "fc" #'cel/copy-file)
+(spacemacs/set-leader-keys "fc" #'cel:copy-file)
 
 (provide 'general-config)
