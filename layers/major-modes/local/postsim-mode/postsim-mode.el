@@ -1,13 +1,17 @@
 ;; postsim-mode.el
+(defgroup postsim-mode nil
+  "Custom faces for pass or fail status"
+  :group 'faces)
+
 (defface postsim-pass-face
   '((t :background "ForestGreen" :weight bold))
+  "Face to highlight pass status"
   :group 'postsim-mode)
-(defvar postsim-pass-face 'postsim-pass-face)
 
 (defface postsim-fail-face
   '((t :background "OrangeRed" :weight bold))
+  "Face to highlight fail status"
   :group 'postsim-mode)
-(defvar postsim-fail-face 'postsim-fail-face)
 
 (setq postsim-font-lock-keywords
       `((,(rx bol (group "[" (1+ (in alnum " ")) "]")) 1 font-lock-type-face)
