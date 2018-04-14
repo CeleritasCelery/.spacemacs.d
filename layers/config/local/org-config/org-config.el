@@ -8,16 +8,13 @@
 (setq org-todo-keywords '((sequence "TODO(t)" "DOING(g)" "WAIT(w@)" "|" "DONE(d)")
                           (sequence "|" "CANCELED(c@)")))
 
+(add-hook 'org-insert-heading-hook 'evil-insert-state)
+
 (defun cel/org-truncate-line ()
   (let ((inhibit-message t))
     (toggle-truncate-lines)))
 (add-hook 'org-mode-hook 'cel/org-truncate-line)
 (add-hook 'org-mode-hook 'org-indent-mode)
-
-(defun cel/evil-org-todo-enter-insert-state (&rest args)
-  (and (featurep 'evil-states)
-       (evil-insert-state)))
-(advice-add 'org-insert-todo-heading-respect-content :after #'cel/evil-org-todo-enter-insert-state)
 
 (setq org-agenda-todo-ignore-scheduled 'future)
 (setq org-enforce-todo-dependencies t)
