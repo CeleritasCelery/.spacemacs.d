@@ -79,10 +79,6 @@ values."
      ox-twbs
      (rsw-elisp :location (recipe :fetcher github :repo "rswgnu/rsw-elisp"))
      elisp-def
-     ivy
-     ivy-hydra
-     swiper
-     counsel
      quickrun
      dash-functional
      suggest
@@ -474,9 +470,6 @@ values."
   (when (configuration-layer/package-usedp 'rainbow-mode)
     (add-hook 'emacs-lisp-mode-hook 'rainbow-mode)) ;; color names are highlighted in that color
 
-  (setq magit-blame-time-format "%yww%U.%u | %b,%d %H:%M") ;; use intel ww syntax
-  (remove-hook 'magit-status-sections-hook 'magit-insert-recent-commits)
-
   ;; Don't auto-pair single quote in verilog mode
   (when (configuration-layer/package-usedp 'smartparens)
     (sp-local-pair 'verilog-mode "'" nil :actions nil))
@@ -484,7 +477,6 @@ values."
   (setq git-gutter+-diff-options '("-w")) ;; ignore whitespace in gutter diffs
 
   (spacemacs/set-leader-keys-for-major-mode 'json-mode "p" 'jsons-print-path) ;; print the json path of object
-
 
   (set-face-attribute 'font-lock-comment-face nil
                       :background "#293038") ;; this looks better with 15 or 16 bit color
@@ -546,12 +538,14 @@ values."
                         :weight 'bold
                         :underline nil))
 
-  ;; https://github.com/syl20bnr/spacemacs/issues/7516
-  (define-key ivy-minibuffer-map (kbd "TAB") 'ivy-alt-done)
 
   (spacemacs/set-leader-keys "bp" 'spacemacs/buffer-transient-state/previous-buffer)
   (spacemacs/set-leader-keys "bn" 'spacemacs/buffer-transient-state/next-buffer)
 
   (global-linum-mode -1)
+
+  ;; fixes https://github.com/syl20bnr/spacemacs/pull/10585
+  (global-set-key (kbd "M-x") 'helm-M-x)
+  (spacemacs/set-leader-keys dotspacemacs-command-key 'helm-M-x)
 
   )

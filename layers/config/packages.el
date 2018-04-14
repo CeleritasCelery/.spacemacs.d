@@ -41,7 +41,59 @@
     (highlight-quoted :location (recipe :fetcher github :repo "Fanael/highlight-quoted"))
     nameless
     yatemplate
+    magit
+    ivy
+    ivy-hydra
+    swiper
+    counsel
+    smex
     ))
+
+(defun config/init-ivy ()
+  (use-package ivy
+    :defer t
+    :init
+    (setq ivy-height 15)
+    :config
+    (with-eval-after-load 'recentf
+      ;; merge recentf and bookmarks into buffer switching. If we set this
+      ;; before recentf loads, then ivy-mode loads recentf for us,
+      ;; which messes up the spacemacs version of recentf.
+      (setq ivy-use-virtual-buffers t))
+    (require 'ivy-hydra)
+    (evil-make-overriding-map ivy-occur-mode-map 'normal)
+    ;; https://github.com/syl20bnr/spacemacs/issues/7516
+    ))
+
+(defun config/init-ivy-hydra ()
+  (use-package ivy-hydra
+    :defer t))
+
+(defun config/init-swiper ()
+  (use-package swiper
+    :defer t
+    :init
+    (spacemacs/set-leader-keys "oS" 'swiper)))
+
+(defun config/init-counsel ()
+  (use-package counsel
+    :defer t
+    :init
+    (spacemacs/set-leader-keys "oF" 'counsel-find-file)
+    :config
+    (define-key counsel-find-file-map (kbd "TAB") 'ivy-alt-done)))
+
+(defun config/init-smex ()
+  (use-package smex
+    :defer t
+    :init
+    (setq-default smex-save-file (expand-file-name ".smex-items"
+                                                   spacemacs-cache-directory))))
+
+(defun config/post-init-magit ()
+  (with-eval-after-load 'magit
+    (setq magit-blame-time-format "%yww%U.%u | %b,%d %H:%M") ;; use intel ww syntax
+    (remove-hook 'magit-status-sections-hook 'magit-insert-recent-commits)))
 
 (defun config/init-yatemplate ()
   (use-package yatemplate
