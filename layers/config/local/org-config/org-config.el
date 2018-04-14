@@ -23,16 +23,16 @@
 
 (setq user-full-name "Troy Hinckley")
 
-;;; commenting this out so I can add these settings to the export file
-;;; I will keep them here till I am sure I don't need them
-;; (setq org-export-with-section-numbers 2
-;;       org-export-with-toc nil
-;;       org-export-with-sub-superscripts "{}"
-;;       org-export-with-priority t
-;;       org-export-preserve-breaks t
-;;       org-startup-folded nil
-;;       org-insert-heading-respect-content t
-;;       org-html-table-default-attributes '(:border "2" :rules "all" :frame "border"))
+;; org export settings
+(setq org-export-with-section-numbers nil
+      org-export-with-toc nil
+      org-export-with-sub-superscripts '{}
+      org-export-with-priority t
+      org-export-preserve-breaks t
+      org-insert-heading-respect-content t)
+
+;; org-startup-folded nil
+;; org-html-table-default-attributes '(:border "2" :rules "all" :frame "border")
 
 (setq org-html-postamble nil)
 
@@ -138,6 +138,19 @@
          "</style>\n"))
   t)
 (cel:org-create-css-html-email-head)
+
+(defun cel:export-org-email ()
+  "Export the current org email and copy it to the clipboard"
+  (interactive)
+  (let ((org-export-show-temporary-export-buffer nil))
+    (org-html-export-as-html)
+    (with-current-buffer "*Org HTML Export*"
+      (kill-new (buffer-string)))
+    (message "HTML copied to clipboard")))
+(with-eval-after-load 'org-capture
+  (spacemacs/set-leader-keys-for-minor-mode 'org-capture-mode
+    "ee" #'cel:export-org-email
+    "ed" 'org-export-dispatch))
 
 (with-eval-after-load 'org-src
   (define-key org-src-mode-map (kbd "C-c C-c") 'org-edit-src-exit)
