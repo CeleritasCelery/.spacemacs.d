@@ -343,4 +343,15 @@ echo \"<set-pid $$>\""
               s-lines
               (set var))))
 
+(defvar cel:shell-env-targets '("MODEL_ROOT" "STF_SPFSPEC" "TAP_SPFSPEC" "TAP2STF_MAP_FILE" "XWEAVE" "XWEAVE_REPO_ROOT" "SPF_ROOT" "SPF_PERL_LIB"))
+(defun cel:load-shell-env ()
+  "Load the enviroment out of shell into Emacs"
+  (interactive)
+  (cl-loop for env in cel:shell-env-targets
+           do (let ((val (getenv env)))
+                ;; leave the current buffer scope to write the global
+                ;; environment values
+                (with-temp-buffer
+                  (setenv env val)))))
+
 (provide 'shell-config)
