@@ -72,6 +72,8 @@
 (setq org-journal-carryover-items nil)
 (setq org-directory "~/org")
 (setq org-default-notes-file (concat org-directory "/dev/notes.org"))
+(setq org-default-email-file (concat org-directory "/dev/email.org"))
+(setq org-default-journal-file (concat org-directory "/dev/journal.org"))
 (setq org-journal-dir (expand-file-name "journal" org-directory)) ;; keep all techical journals here
 (setq org-agenda-file-regexp (rx bos
                                  (or (1+ (in "-" digit)) ;; numeric journal files
@@ -129,19 +131,21 @@
 
 (setq org-capture-templates
       '(("t" "Todo" entry (file+headline org-default-notes-file "Tasks")
-         "* TODO %?\n %t\n" :empty-lines 1)
+         "* TODO [#B] %?\n %t\n" :empty-lines 1)
         ("l" "Todo Link" entry (file+headline org-default-notes-file "Tasks")
-         "* TODO %?\n %i\n %a" :empty-lines 1)
+         "* TODO [#B] %?\n %i\n %a" :empty-lines 1)
         ("s" "Scheduled TODO" entry (file+headline org-default-notes-file "Tasks")
-         "* TODO %?\n  SCHEDULED: %^T\n" :empty-lines 1)
+         "* TODO [#B] %?\n  SCHEDULED: %^T\n" :empty-lines 1)
         ("T" "Todo from Clipboard" entry (file+headline org-default-notes-file "Tasks")
-         "* TODO %?\n  %c" :empty-lines 1)
+         "* TODO [#B] %?\n  %c" :empty-lines 1)
         ("n" "Note" entry (file+headline org-default-notes-file "Notes")
          "* %?" :empty-lines 1)
         ("N" "Note with Clipboard" entry (file+headline org-default-notes-file "Notes")
          "* %?\n   %c" :empty-lines 1)
-        ("e" "Email" plain (file+headline org-default-notes-file "email")
-         "%?" :empty-lines 1)))
+        ("e" "Email" plain (file org-default-email-file)
+         "%?" :empty-lines 1)
+        ("j" "Journal" entry (file org-default-journal-file)
+         "* %<%a %b %e, %l:%M> -  %?" :empty-lines 1)))
 (spacemacs/set-leader-keys "oo" 'org-capture)
 
 
