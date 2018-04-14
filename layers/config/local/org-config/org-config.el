@@ -5,10 +5,31 @@
                            (?B . (:foreground "yellow3" :weight 'bold))
                            (?C . (:foreground "ForestGreen" :weight 'bold))))
 
-(setq org-todo-keywords '((sequence "TODO(t)" "DOING(g)" "WAIT(w@)" "|" "DONE(d)")
+(setq org-todo-keywords '((sequence "TODO(t)" "BLOCK(b@!)" "DOING(g)" "|" "DONE(d)")
                           (sequence "|" "CANCELED(c@)")))
 
+(setq org-agenda-sorting-strategy '((agenda habit-down time-up priority-down category-keep)
+                                    (todo user-defined-down priority-down timestamp-down category-keep)
+                                    (tags priority-down category-keep)
+                                    (search category-keep)))
+
 (add-hook 'org-insert-heading-hook 'evil-insert-state)
+
+(setq org-todo-sort-order '("BLOCK" "TODO" "DOING" "CANCELED" "DONE"))
+
+(defun cel:user-todo-sort (a b)
+  "Sort todo based on which I want to see first"
+  (when-let ((state-a (get-text-property 14 'todo-state a))
+             (state-b (get-text-property 14 'todo-state b))
+             (cmp (--map (cl-position-if (lambda (x)
+                                           (equal x it))
+                                         org-todo-sort-order)
+                         (list state-a state-b))))
+    (cond ((apply '> cmp) 1)
+          ((apply '< cmp) -1)
+          (t nil))))
+(setq org-agenda-cmp-user-defined 'cel:user-todo-sort)
+
 
 (defun cel/org-truncate-line ()
   (let ((inhibit-message t))
