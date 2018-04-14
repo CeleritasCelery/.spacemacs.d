@@ -108,6 +108,7 @@
 (defun config/init-nameless ()
   (use-package nameless
     :hook (emacs-lisp-mode . nameless-mode-from-hook)
+    :diminish "Ͽ"
     :config (setq nameless-prefix "Ͽ")))
 
 (defun config/init-highlight-quoted ()

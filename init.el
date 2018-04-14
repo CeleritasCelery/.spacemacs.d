@@ -92,7 +92,7 @@ values."
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '(org-projectile projectile)
    ;; A list of packages that will not be installed and loaded.
-   dotspacemacs-excluded-packages '(company-plsense origami)
+   dotspacemacs-excluded-packages '(company-plsense origami bug-reference hl-todo)
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
    ;; `used-only' installs only explicitly used packages and uninstall any
@@ -333,7 +333,7 @@ values."
   (load custom-file 'noerror)
 
   (setq magit-git-executable "/usr/intel/pkgs/git/2.12.0/bin/git" ;; get around old magit git version problem
-        git-gutter+-git-executable "/usr/intel/pkgs/git/2.8.4/bin/git" ;; get around old magit git version problem
+        git-gutter+-git-executable "/usr/intel/pkgs/git/2.12.0/bin/git" ;; get around old magit git version problem
         evil-want-abbrev-expand-on-insert-exit nil ;; don't preform an abbrev expansion on insert state exit
         exec-path-from-shell-check-startup-files nil)
   )
@@ -541,6 +541,8 @@ values."
 
   (spacemacs/set-leader-keys "bp" 'spacemacs/buffer-transient-state/previous-buffer)
   (spacemacs/set-leader-keys "bn" 'spacemacs/buffer-transient-state/next-buffer)
+
+  (setq default-input-method "TeX")
 
   (global-linum-mode -1)
 

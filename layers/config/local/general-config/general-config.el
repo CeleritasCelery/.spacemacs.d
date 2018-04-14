@@ -1,8 +1,6 @@
 ;;; general-config.el --- a collection of functions I wrote to assist in coding  -*- lexical-binding: t -*-
-
 (defun highlight-lines ()
   (interactive)
-  (set-face-attribute 'highlight nil :background "#293235" :foreground "#67b11d") ;; green
   (let ((start (line-beginning-position))
 		(end (line-end-position)))
 	(when (or (not transient-mark-mode) (region-active-p))

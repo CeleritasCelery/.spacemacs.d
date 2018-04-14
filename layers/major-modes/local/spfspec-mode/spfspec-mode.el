@@ -101,7 +101,6 @@
   (setq-local comment-start "// ")
   (setq-local comment-end "")
   (prettify-symbols-mode)
-  (linum-mode)
   (when (featurep 'highlight-numbers)
     (highlight-numbers-mode)))
 

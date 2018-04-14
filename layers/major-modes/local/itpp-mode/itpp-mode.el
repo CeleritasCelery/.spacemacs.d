@@ -40,7 +40,6 @@
   (setq-local font-lock-defaults '(itpp-font-lock-keywords))
   (setq-local comment-start "# ")
   (setq-local comment-end "")
-  (linum-mode)
   (prettify-symbols-mode))
 
 (provide 'itpp-mode)
