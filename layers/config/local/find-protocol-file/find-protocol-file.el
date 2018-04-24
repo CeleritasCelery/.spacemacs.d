@@ -5,20 +5,22 @@
 ;; Author: Troy Hinckley <tjhinckl@sccj015054>
 ;; Keywords: files
 
-(defvar cel/itpp-espf-search-path '(""))
+(defvar find-protocol-file-search-path '("" "../../espf_tests/*" "../../tests/*")
+  "The search path to find a matching ITPP or ESPF. Supports wild card expansion.")
 
 ;;;###autoload
-(defun cel/switch-itpp-espf ()
+(defun find-protocol-file ()
+  "Switch between the current ITPP and ESPF files."
   (interactive)
   (if-let ((ext (if (equal "itpp" (file-name-extension (buffer-file-name)))
-                    ".espf"
+                    ".*spf"
                   ".itpp"))
            (other-file (concat (file-name-base) ext))
-           (dir (seq-find (lambda (x)
-                            (file-exists-p
-                             (expand-file-name other-file x)))
-                          cel/itpp-espf-search-path)))
-      (switch-to-buffer (find-file-noselect (expand-file-name other-file dir)))
+           (path (cl-some (lambda (x)
+                            (car (file-expand-wildcards
+                                  (expand-file-name other-file x))))
+                          find-protocol-file-search-path)))
+      (switch-to-buffer (find-file-noselect path))
     (error "unable to find matching itpp/espf file")))
 
 (provide 'find-protocol-file)
