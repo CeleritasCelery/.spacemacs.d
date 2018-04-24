@@ -68,18 +68,20 @@
                    :unless '(sp-point-after-word-p)
                    :post-handlers '(("[d1]" "SPC")))))
 
-(setq org-journal-file-format "%Y-%m-%d")
-(setq org-journal-carryover-items nil)
-(setq org-directory "~/org")
-(setq org-default-notes-file (concat org-directory "/dev/notes.org"))
-(setq org-default-email-file (concat org-directory "/dev/email.org"))
-(setq org-default-journal-file (concat org-directory "/dev/journal.org"))
-(setq org-journal-dir (expand-file-name "journal" org-directory)) ;; keep all techical journals here
-(setq org-agenda-file-regexp (rx bos
-                                 (or (1+ (in "-" digit)) ;; numeric journal files
-                                     (and (not (any ".")) ;; regular org files (foo.org)
-                                          (0+ nonl) ".org"))
-                                 eos))
+(with-eval-after-load 'org
+  (setq org-journal-file-format "%Y-%m-%d")
+  (setq org-journal-carryover-items nil)
+  (setq org-directory "~/org")
+  (setq org-default-notes-file (concat org-directory "/dev/notes.org"))
+  (setq org-default-email-file (concat org-directory "/dev/email.org"))
+  (setq org-default-journal-file (concat org-directory "/dev/journal.org"))
+  (setq org-journal-dir (expand-file-name "journal" org-directory)) ;; keep all techical journals here
+  (setq org-agenda-file-regexp (rx bos
+                                   (or (1+ (in "-" digit)) ;; numeric journal files
+                                       (and (not (any ".")) ;; regular org files (foo.org)
+                                            (0+ nonl) ".org"))
+                                   eos)))
+
 
 (defun org-archive-done-tasks ()
   (interactive)

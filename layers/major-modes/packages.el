@@ -24,25 +24,22 @@
 
 (defun major-modes/init-itpp-mode ()
   (use-package itpp-mode
-    :mode "\\.itpp\\'"))
+    :defer t))
 
 (defun major-modes/init-reglist-mode ()
   (use-package reglist-mode
-    :mode (rx ".list" (optional ".expand") eos)
-    :mode "\\.defaults\\'"
-    :mode "\\.inc\\'"
+    :defer t
     :config
     (spacemacs/set-leader-keys-for-major-mode 'reglist-mode "c" #'reglist-creed-wrap)
     (spacemacs/set-leader-keys-for-major-mode 'reglist-mode "a" #'reglist-ace-wrap)))
 
 (defun major-modes/init-sdgc-mode ()
   (use-package sgdc-mode
-    :mode "\\.sgdc\\'"
-    :mode "\\.opt\\'"))
+    :defer t))
 
 (defun major-modes/init-spfspec-mode ()
   (use-package spfspec-mode
-    :mode "\\.spfspec\\'"
+    :defer t
     :init
     (with-eval-after-load "smartparens"
       (sp-local-pair 'spfspec-mode "'" nil :actions nil))
@@ -58,10 +55,10 @@
 
 (defun major-modes/init-postsim-mode ()
   (use-package postsim-mode
-    :mode (rx "postsim.log" (optional ".gz") eos)))
+    :defer t))
 
 (defun major-modes/init-tracker-mode ()
   (use-package tracker-mode
-    :mode (rx "TRK_PID_0x" (1+ (any xdigit)) ".out" (optional ".gz") eos)))
+    :defer t))
 
 ;;; packages.el ends here
