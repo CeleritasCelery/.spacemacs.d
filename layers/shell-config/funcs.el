@@ -32,5 +32,8 @@
       (insert path))))
 
 (defun cel/find-file-at-point ()
+  "A better replacement for `find-file-at-point' that gives me
+the full power of helm"
   (interactive)
-  (helm-find-files-1 (cel/get-path-at-point)))
+  (let ((file (cel/get-path-at-point)))
+    (helm-find-files-1 file (file-name-base file))))
