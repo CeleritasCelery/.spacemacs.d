@@ -79,13 +79,31 @@
     (advice-add 'shell-pop--cd-to-cwd :filter-args #'cel/strip-tramp-cmd)))
 
 (spacemacs|use-package shx
-    :defer t
-    :init
-    (spacemacs|diminish shx-mode " ⓧ" " x")
-    (add-hook 'shell-mode-hook #'shx-mode)
-    (add-hook 'shx-mode-hook (lambda () (setq comint-prompt-read-only t)))
-    :config
-  (define-key shx-mode-map (kbd "C-<return>") #'shx-send-input-or-copy-path))
+  :defer t
+  :init
+  (spacemacs|diminish shx-mode " ⓧ" " x")
+  (add-hook 'shell-mode-hook #'shx-mode)
+  (add-hook 'shx-mode-hook (lambda () (setq comint-prompt-read-only t)))
+  :config
+  (define-key shx-mode-map (kbd "C-<return>") #'shx-send-input-or-copy-path)
+  ;; overload to substitute env vars
+  (defun shx-filter-input (process input)
+    "Before sending to PROCESS, filter the INPUT.
+That means, if INPUT is a shx-command, do that command instead.
+This function overrides `comint-input-sender'."
+    (let* ((match (string-match (concat "^" shx-leader shx-cmd-syntax)
+                                (string-trim-left input)))
+           (shx-cmd (and match (shx--get-user-cmd (match-string 1 input)))))
+      (if (not shx-cmd)
+          (comint-simple-send process input)
+        (condition-case-unless-debug error-descriptor
+            (funcall shx-cmd (substitute-env-vars (match-string 2 input)))
+          (error (shx-insert 'error (error-message-string error-descriptor) "\n")))
+        (with-current-buffer (process-buffer process)
+          ;; advance the process mark to trick comint-mode
+          (set-marker (process-mark process) (point)))
+        ;; send a blank to fetch a new prompt
+        (comint-send-string process "\n")))))
 
 (spacemacs|extend-package company
   :post-init
@@ -103,19 +121,19 @@
   (progn
     (define-key company-active-map (kbd "RET") nil)
     (define-key company-active-map [return] nil)
-  (defun cel/company-dabbrev--skip-numbers (ret-val)
-    (unless (and ret-val
-                 (s-matches? (rx bos (+ digit) eos) ret-val))
-      ret-val))
-  (advice-add 'company-dabbrev--prefix :filter-return #'cel/company-dabbrev--skip-numbers)
+    (defun cel/company-dabbrev--skip-numbers (ret-val)
+      (unless (and ret-val
+                   (s-matches? (rx bos (+ digit) eos) ret-val))
+        ret-val))
+    (advice-add 'company-dabbrev--prefix :filter-return #'cel/company-dabbrev--skip-numbers)
 
-  (defun cel/company-select-prev-or-comint-match-input (&optional _)
-    (when (and (eq major-mode 'shell-mode)
-               (eq company-selection 0))
-      (company-abort)
-      (call-interactively 'comint-previous-matching-input-from-input)))
-  (advice-add 'company-select-previous :before-until #'cel/company-select-prev-or-comint-match-input)
-  (with-eval-after-load "company-dabbrev-code"
+    (defun cel/company-select-prev-or-comint-match-input (&optional _)
+      (when (and (eq major-mode 'shell-mode)
+                 (eq company-selection 0))
+        (company-abort)
+        (call-interactively 'comint-previous-matching-input-from-input)))
+    (advice-add 'company-select-previous :before-until #'cel/company-select-prev-or-comint-match-input)
+    (with-eval-after-load "company-dabbrev-code"
       (add-to-list 'company-dabbrev-code-modes 'comint-mode))))
 
 

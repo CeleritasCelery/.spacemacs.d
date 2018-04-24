@@ -141,6 +141,10 @@ don't have the technical competence to fix"
   (f-same? default-directory cwd))
 (advice-add 'shell-pop--cd-to-cwd :before-until 'cel/shell-in-cwd-p)
 
+(defun $scroll-shell-pop (_)
+  (scroll-down 1))
+(advice-add 'shell-pop--cd-to-cwd :after '$scroll-shell-pop)
+
 (with-eval-after-load 'comint
   (define-key comint-mode-map
     [remap comint-dynamic-list-input-ring] #'helm-comint-input-ring))
@@ -353,5 +357,6 @@ echo \"<set-pid $$>\""
                 ;; environment values
                 (with-temp-buffer
                   (setenv env val)))))
+(spacemacs/set-leader-keys-for-major-mode 'shell-mode "e" 'cel:load-shell-env)
 
 (provide 'shell-config)
