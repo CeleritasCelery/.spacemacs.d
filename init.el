@@ -492,7 +492,7 @@ values."
     ;; https://emacs.stackexchange.com/questions/29286/tramp-unable-to-open-some-files
     (setq tramp-inline-compress-start-size 1000000)
     (setq tramp-copy-size-limit 1000000)
-    (defun cel/tcsh-remote-shell (fn &rest args)
+    (defun $tcsh-remote-shell (fn &rest args)
       (if (file-remote-p default-directory)
           (let ((shell-file-name "tcsh"))
             (apply fn args))
@@ -500,8 +500,8 @@ values."
     (tramp-set-completion-function "ssh" '((tramp-parse-hosts "~/.ssh2/ssh2_config"))))
 
   (setq helm-split-window-inside-p t)
-  (advice-add 'shell-pop :around #'cel/tcsh-remote-shell)
-  (advice-add 'shell :around #'cel/tcsh-remote-shell)
+  (advice-add 'shell-pop :around #'$tcsh-remote-shell)
+  (advice-add 'shell :around #'$tcsh-remote-shell)
 
   (when (configuration-layer/package-usedp 'evil-cleverparens)
     (add-hook 'emacs-lisp-mode-hook 'evil-cleverparens-mode))
@@ -509,16 +509,16 @@ values."
   (setq sp-echo-match-when-invisible nil)
   (setq dired-listing-switches "-alth")
 
-  (defun cel/disable-modes-json ()
+  (defun $disable-modes-json ()
     (highlight-numbers-mode -1)
     (rainbow-delimiters-mode -1))
-  (add-hook 'json-mode-hook 'cel/disable-modes-json)
+  (add-hook 'json-mode-hook '$disable-modes-json)
   (add-hook 'css-mode-hook 'rainbow-mode)
   (font-lock-add-keywords 'sh-mode
-                  `((,(rx word-start
-                          (group (repeat 1 2 "-")
-                                 (0+ (any alnum "-_")))) 1 'font-lock-constant-face t)
-                    (,(rx "$" (group (1+ (any alnum "_")))) 1 'font-lock-builtin-face t)))
+                          `((,(rx word-start
+                                  (group (repeat 1 2 "-")
+                                         (0+ (any alnum "-_")))) 1 'font-lock-constant-face t)
+                            (,(rx "$" (group (1+ (any alnum "_")))) 1 'font-lock-builtin-face t)))
 
   (put 'cperl-indent-parens-as-block 'safe-local-variable 'booleanp)
 

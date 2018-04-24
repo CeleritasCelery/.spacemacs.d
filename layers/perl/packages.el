@@ -28,7 +28,7 @@
     :config
     (progn
       ;; correct for Intel-style binary and hex notation
-      (defalias 'my/perl-syntax-propertize-function
+      (defalias '$perl-syntax-propertize-function
         (eval `(syntax-propertize-rules
                 (,(rx (group-n 1 "'")
                       (1+ (not (any "';(){}[],")))
@@ -40,7 +40,7 @@
                   (setq prettify-symbols-alist perl5--prettify-symbols-alist)
                   (prettify-symbols-mode)
                   (add-function :before (local 'syntax-propertize-function)
-                                #'my/perl-syntax-propertize-function)))
+                                #'$perl-syntax-propertize-function)))
 
       (font-lock-add-keywords
        'perl-mode

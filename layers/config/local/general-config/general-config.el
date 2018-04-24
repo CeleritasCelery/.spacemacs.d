@@ -44,23 +44,23 @@
 		(replace-match "\\1\n\\2")))))
 (spacemacs/set-leader-keys "xld" 'delete-duplicate-lines) ;; remove all duplicates
 
-(defun cel/open-file-in-clipboard ()
+(defun $open-file-in-clipboard ()
   (interactive)
   (helm-find-files-1 (string-trim (current-kill 0))))
-(spacemacs/set-leader-keys "of" #'cel/open-file-in-clipboard)
+(spacemacs/set-leader-keys "of" #'$open-file-in-clipboard)
 
-(defvar cel:ediff-targets nil
+(defvar $ediff-targets nil
   "The last two files that were diffed")
-(defun cel:save-ediff-targets (&rest args)
+(defun $save-ediff-targets (&rest args)
   "Save the last two ediffed files"
-  (setq cel:ediff-targets (car args)))
-(advice-add 'ediff-files-internal :filter-args #'cel:save-ediff-targets)
+  (setq $ediff-targets (car args)))
+(advice-add 'ediff-files-internal :filter-args #'$save-ediff-targets)
 
-(defun cel:run-last-ediff ()
+(defun $run-last-ediff ()
   "Run ediff with the last used files"
   (interactive)
-  (apply 'ediff-files-internal cel:ediff-targets))
-(spacemacs/set-leader-keys "oe" #'cel:run-last-ediff)
+  (apply 'ediff-files-internal $ediff-targets))
+(spacemacs/set-leader-keys "oe" #'$run-last-ediff)
 
 (defun set-tab-width (x)
   "set the tab width for the current buffer"
@@ -68,19 +68,19 @@
   (setq tab-width x))
 (spacemacs/set-leader-keys "ot" 'set-tab-width)
 
-(defun my/evil-next-line (orig-fun &rest args)
+(defun $evil-next-line (orig-fun &rest args)
   "check to see if we are in visual line mode"
   (if visual-line-mode
 	  (apply 'evil-next-visual-line args)
 	(apply orig-fun args)))
-(advice-add 'evil-next-line :around 'my/evil-next-line)
+(advice-add 'evil-next-line :around '$evil-next-line)
 
-(defun my/evil-previous-line (orig-fun &rest args)
+(defun $evil-previous-line (orig-fun &rest args)
   "check to see if we are in visual line mode"
   (if visual-line-mode
 	  (apply 'evil-previous-visual-line args)
 	(apply orig-fun args)))
-(advice-add 'evil-previous-line :around 'my/evil-previous-line)
+(advice-add 'evil-previous-line :around '$evil-previous-line)
 
 (defvar window-sizes
   '((large  . "1920x1200")
@@ -186,7 +186,7 @@
   ("/" helm-ff-run-find-sh-command "find")
   ("z" helm-fzf-from-session "fzf")
   ("x" helm-ff-run-ediff-file "ediff")
-  ("o" cel/helm-ff-run-switch-to-shell "shell")
+  ("o" $helm-ff-run-switch-to-shell "shell")
   ("i" helm-ff-file-name-history "file history")
   ("r" helm-ff-run-switch-to-history "directory history"))
 
@@ -300,7 +300,7 @@ If a file name, copy the full path"
    ((eql radix 16) "Hexadecimal")
    (t (format      "(base %d)" radix))))
 
-(defun cel/convert-radix-internal (str old-radix new-radix)
+(defun $convert-radix-internal (str old-radix new-radix)
   "internal function to convert between two radices"
   (message "%s %s = %s %s"
            (radix-name old-radix)
@@ -322,7 +322,7 @@ If a file name, copy the full path"
                     (progn (setq str (s-chop-prefix it str))
                            (if (s-contains? "b" it) 'bin 'hex))
                   'bin)))
-    (apply 'cel/convert-radix-internal str (if (eq radix 'bin) '(2 16) '(16 2)))))
+    (apply '$convert-radix-internal str (if (eq radix 'bin) '(2 16) '(16 2)))))
 (spacemacs/set-leader-keys "oc" 'convert-hex-binary)
 
 (defun convert-radix (r1 r2)
@@ -343,7 +343,7 @@ If a file name, copy the full path"
                               (funcall it valid-chars)
                               (point))
                             '(skip-chars-backward skip-chars-forward)))))
-    (cel/convert-radix-internal str r1 r2)))
+    ($convert-radix-internal str r1 r2)))
 
 (spacemacs/set-leader-keys "ox" 'convert-radix)
 
@@ -394,14 +394,14 @@ If a file name, copy the full path"
       (advice-add 'message :after #'messages-auto-tail)
     (advice-remove 'message #'messages-auto-tail)))
 
-(defun cel/helm-ff-not-hardlink-p (file)
+(defun $helm-ff-not-hardlink-p (file)
   (not (s-ends-with? ".." file)))
 
-(defun cel/helm-ff-up-one-level (fcn &rest args)
+(defun $helm-ff-up-one-level (fcn &rest args)
   (cl-flet ((helm-file-completion-source-p (&rest _) t))
     (apply fcn args)))
 
-(defun cel/helm-ff-dots-at-bottom (ret-val)
+(defun $helm-ff-dots-at-bottom (ret-val)
   (if (and (listp ret-val)
            (not (equal (with-helm-buffer (buffer-name))
                        "*Helm file completions*")))
@@ -412,11 +412,11 @@ If a file name, copy the full path"
 ;; *helm file completions*
 (with-eval-after-load 'helm-files
   (advice-add 'helm-ff-filter-candidate-one-by-one
-              :before-while 'cel/helm-ff-not-hardlink-p)
+              :before-while '$helm-ff-not-hardlink-p)
   (advice-add 'helm-find-files-up-one-level
-              :around 'cel/helm-ff-up-one-level)
+              :around '$helm-ff-up-one-level)
   (advice-add 'helm-find-files-get-candidates
-              :filter-return 'cel/helm-ff-dots-at-bottom))
+              :filter-return '$helm-ff-dots-at-bottom))
 
 (defvar evil-v$-gets-eol nil)
 
@@ -434,16 +434,16 @@ If COUNT is given, move COUNT - 1 lines downward first."
       ;; prevent "c$" and "d$" from deleting blank lines
       (setq evil-this-type 'exclusive))))
 
-(defvar cel/bookmarked-dirs '((?r . "/nfs/site/home/tjhinckl/workspace/models/snr/tests/scan/custom/snr/snr/")
+(defvar $bookmarked-dirs '((?r . "/nfs/site/home/tjhinckl/workspace/models/snr/tests/scan/custom/snr/snr/")
                               (?s . "/nfs/site/home/tjhinckl/workspace/models/snr/scan_tests/1p0/")
                               (?l . "/nfs/site/home/tjhinckl/workspace/models/snr/tests/scan/custom/")))
-(defun cel/goto-bookmarked-dir ()
+(defun $goto-bookmarked-dir ()
   (interactive)
   (if-let ((key (read-char "Directory letter: "))
-           (dir (alist-get key cel/bookmarked-dirs)))
+           (dir (alist-get key $bookmarked-dirs)))
       (helm-find-files-1 dir)
     (user-error "Directory letter does not exist")))
-(spacemacs/set-leader-keys "od" #'cel/goto-bookmarked-dir)
+(spacemacs/set-leader-keys "od" #'$goto-bookmarked-dir)
 
 (defun call-keymap (map &optional prompt)
   "Read a key sequence and call the command it's bound to in MAP.
@@ -455,9 +455,9 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
           ((equal key (kbd "C-g"))) ;; don't error out on keyboard quit
           (t (user-error "%s is undefined" key)))))
 
-(defmacro cel/create-split-fn (direction)
+(defmacro $create-split-fn (direction)
   (let ((func-name (concat "split-window-" (symbol-name direction))))
-    `(defun ,(intern (concat "cel/" func-name)) ()
+    `(defun ,(intern (concat "$" func-name)) ()
        (interactive)
        (let ((old-buf (current-buffer)) new-buf)
          (call-keymap spacemacs-cmds "Enter keybinding: ")
@@ -466,20 +466,20 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
            (,(intern func-name))
            (set-window-buffer (selected-window) old-buf)
            (select-window (window-in-direction ',direction)))))))
-(cel/create-split-fn right)
-(cel/create-split-fn below)
+($create-split-fn right)
+($create-split-fn below)
 
-(spacemacs/set-leader-keys "wv" 'cel/split-window-right)
-(spacemacs/set-leader-keys "ws" 'cel/split-window-below)
+(spacemacs/set-leader-keys "wv" '$split-window-right)
+(spacemacs/set-leader-keys "ws" '$split-window-below)
 
 
-(defun cel:copy-file ()
+(defun $copy-file ()
   (interactive)
   (let* ((destination (read-file-name "Write File: "))
          (dir (file-name-directory destination)))
     (unless (file-exists-p dir)
       (make-directory dir :parents))
     (write-file destination :confirm)))
-(spacemacs/set-leader-keys "fc" #'cel:copy-file)
+(spacemacs/set-leader-keys "fc" #'$copy-file)
 
 (provide 'general-config)

@@ -1,12 +1,12 @@
 ;;; funcs.el --- Shell Layer functions File
 
-(defun cel/helm-ff-run-switch-to-shell ()
+(defun $helm-ff-run-switch-to-shell ()
   "Run switch to shell action from `helm-source-find-files'."
   (interactive)
   (with-helm-alive-p
-    (helm-exit-and-execute-action 'cel/helm-ff-switch-to-shell)))
+    (helm-exit-and-execute-action '$helm-ff-switch-to-shell)))
 
-(defun cel/helm-ff-switch-to-shell (_)
+(defun $helm-ff-switch-to-shell (_)
   (if (and (boundp 'shell-pop-last-shell-buffer-name)
            (equal (buffer-name helm-current-buffer)
                   shell-pop-last-shell-buffer-name))
@@ -15,7 +15,7 @@
       (spacemacs/default-pop-shell))))
 
 
-(defun cel/get-path-at-point ()
+(defun $get-path-at-point ()
   (replace-regexp-in-string
    "\"" ""
    (apply 'buffer-substring-no-properties
@@ -28,13 +28,13 @@
   (interactive)
   (if (shx-point-on-input-p)
       (shx-send-input)
-    (let ((path (cel/get-path-at-point)))
+    (let ((path ($get-path-at-point)))
       (goto-char (point-max))
       (insert path))))
 
-(defun cel/find-file-at-point ()
+(defun $find-file-at-point ()
   "A better replacement for `find-file-at-point' that gives me
 the full power of helm"
   (interactive)
-  (let ((file (cel/get-path-at-point)))
+  (let ((file ($get-path-at-point)))
     (helm-find-files-1 file (file-name-base file))))

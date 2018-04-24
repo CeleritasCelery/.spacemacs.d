@@ -9,9 +9,9 @@
 (setq comint-scroll-to-bottom-on-input t)
 (setq comint-process-echoes t)
 
-(defvar cel/dir-history nil
+(defvar $dir-history nil
   "previous shell directories")
-(make-variable-buffer-local 'cel/dir-history)
+(make-variable-buffer-local '$dir-history)
 
 (defun track-shell-directory/procfs (str)
   "use the proc filesytem to get the current directory.
@@ -19,85 +19,85 @@ Works on remote shells as well if `shx' and `shx-cmd-set-pid' are used. The
 remote shell will need to echo it's PID in the rc file in the form of `shx'
 markup."
   (when (string-match comint-prompt-regexp str)
-    (--when-let (-some->> (cel/get-shell-pid)
+    (--when-let (-some->> ($get-shell-pid)
                           (format "/proc/%s/cwd")
                           (concat (file-remote-p default-directory))
                           file-symlink-p
                           cd)
-      (unless (equal it (car cel/dir-history))
-        (push it cel/dir-history))))
+      (unless (equal it (car $dir-history))
+        (push it $dir-history))))
   str)
 
-(defun cel/supress-hostkey-warning (str)
+(defun $supress-hostkey-warning (str)
   "EC machines issue a benign but really annoying warning that the EC people
 don't have the technical competence to fix"
   ;; add_host_to_hostkeys: failed to open <missing path> - reason Permission denied
   (if (string-match "add_host_to_hostkeys: failed to open" str) "" str))
 
-(defun cel/select-shell-history ()
+(defun $select-shell-history ()
   (interactive)
   (goto-char (point-max))
   (insert (concat "cd " (s-chop-prefix (file-remote-p default-directory)
-                                       (completing-read "directory:" cel/dir-history)))))
+                                       (completing-read "directory:" $dir-history)))))
 
-(define-key shell-mode-map (kbd "C-c C-j") 'cel/select-shell-history)
+(define-key shell-mode-map (kbd "C-c C-j") '$select-shell-history)
 
-(defvar cel/layout-local-variables nil)
+(defvar $layout-local-variables nil)
 
-(defvar cel/layout-local-map (ht-create))
+(defvar $layout-local-map (ht-create))
 
-(defun cel/make-variable-layout-local (&rest vars)
+(defun $make-variable-layout-local (&rest vars)
   (cl-loop for (symbol default-value) on vars by 'cddr
-           do (add-to-list 'cel/layout-local-variables (cons symbol default-value))))
+           do (add-to-list '$layout-local-variables (cons symbol default-value))))
 
-(defun cel/load-layout-local-vars (persp-name &rest _)
+(defun $load-layout-local-vars (persp-name &rest _)
   (let ((layout-local-vars (-filter 'boundp
-                                    (-map 'car cel/layout-local-variables))))
-    (ht-set! cel/layout-local-map
+                                    (-map 'car $layout-local-variables))))
+    (ht-set! $layout-local-map
              (spacemacs//current-layout-name)
              (--map (cons it (symbol-value it))
                     layout-local-vars))
     ;; load the default values
     (--each layout-local-vars
-      (set it (alist-get it cel/layout-local-variables)))
+      (set it (alist-get it $layout-local-variables)))
     ;; override with the previously bound values for the new layout
-    (--when-let (ht-get cel/layout-local-map persp-name)
+    (--when-let (ht-get $layout-local-map persp-name)
         (-each it
         (-lambda ((var . val)) (set var val))))))
 
-(cel/make-variable-layout-local 'shell-pop-last-shell-buffer-index 1
+($make-variable-layout-local 'shell-pop-last-shell-buffer-index 1
                                 'shell-pop-last-shell-buffer-name ""
                                 'shell-pop-last-buffer nil)
 
 
-(defun cel/tcsh-remote-shell (fn &rest args)
+(defun $tcsh-remote-shell (fn &rest args)
   (if (file-remote-p default-directory)
       (let ((shell-file-name "tcsh"))
         (apply fn args))
     (apply fn args)))
 
-(advice-add 'shell-pop :around #'cel/tcsh-remote-shell)
-(advice-add 'shell :around #'cel/tcsh-remote-shell)
+(advice-add 'shell-pop :around #'$tcsh-remote-shell)
+(advice-add 'shell :around #'$tcsh-remote-shell)
 
-(defun cel/shell-pop-restore-window ()
+(defun $shell-pop-restore-window ()
   (unless (buffer-live-p shell-pop-last-buffer)
     (setq shell-pop-last-buffer (window-buffer (get-mru-window (not :all-frames) :dedicated :not-selected))))
   (unless (window-live-p shell-pop-last-window)
     (setq shell-pop-last-window (get-buffer-window shell-pop-last-buffer))))
 
-(add-hook 'shell-pop-out-hook 'cel/shell-pop-restore-window)
+(add-hook 'shell-pop-out-hook '$shell-pop-restore-window)
 
-(advice-add 'persp-switch :before #'cel/load-layout-local-vars)
+(advice-add 'persp-switch :before #'$load-layout-local-vars)
 
-(defun cel/create-persistant-shell (name)
+(defun $create-persistant-shell (name)
   "Create a presistent named NAME shell to layout."
   (interactive "sShell Name: ")
   (let ((shell-buf (s-lex-format "*${name}*")))
     (shell shell-buf)
     (persp-add-buffer shell-buf)))
-(spacemacs/set-leader-keys "os" #'cel/create-persistant-shell)
+(spacemacs/set-leader-keys "os" #'$create-persistant-shell)
 
-(defun cel/kill-backward-shell ()
+(defun $kill-backward-shell ()
   (interactive)
   (--when-let (-some->> (buffer-substring-no-properties (point) (point-at-bol))
                         (s-match (rx (or bos (any space "=/"))
@@ -108,38 +108,38 @@ don't have the technical competence to fix"
                         (length)
                         (- (point)))
     (delete-region (if (eq (point-at-bol) it) it (1+ it)) (point))))
-(evil-define-key 'insert shell-mode-map (kbd "C-w") #'cel/kill-backward-shell)
+(evil-define-key 'insert shell-mode-map (kbd "C-w") #'$kill-backward-shell)
 
 (substitute-key-definition 'comint-previous-input 'comint-previous-matching-input-from-input shell-mode-map)
 (substitute-key-definition 'comint-next-input 'comint-next-matching-input-from-input shell-mode-map)
 (define-key shell-mode-map (kbd "C-S-k") 'comint-previous-prompt)
 (define-key shell-mode-map (kbd "C-S-j") 'comint-next-prompt)
 
-(defun cel/goto-cmd-line (&rest _)
+(defun $goto-cmd-line (&rest _)
   (goto-char (point-max)))
 ;; make this support paste when before the prompt
 
-(defun cel/shell-mode-hook ()
+(defun $shell-mode-hook ()
   (shell-dirtrack-mode 0)
   (setq-local comint-prompt-regexp "^╰─→ \\'")
   (modify-syntax-entry ?= ".")
 
-  (advice-add 'comint-previous-matching-input-from-input :before 'cel/goto-cmd-line)
-  (advice-add 'comint-next-matching-input-from-input :before 'cel/goto-cmd-line)
+  (advice-add 'comint-previous-matching-input-from-input :before '$goto-cmd-line)
+  (advice-add 'comint-next-matching-input-from-input :before '$goto-cmd-line)
   (add-hook 'comint-preoutput-filter-functions
-            'cel/supress-hostkey-warning (not :append) :local)
+            '$supress-hostkey-warning (not :append) :local)
   (add-hook 'comint-preoutput-filter-functions
             'track-shell-directory/procfs (not :append) :local)
   )
-(add-hook 'shell-mode-hook 'cel/shell-mode-hook)
+(add-hook 'shell-mode-hook '$shell-mode-hook)
 
-(defun cel/add-shell-to-layout ()
+(defun $add-shell-to-layout ()
   (persp-add-buffer (current-buffer)))
-(add-hook 'shell-pop-in-after-hook 'cel/add-shell-to-layout)
+(add-hook 'shell-pop-in-after-hook '$add-shell-to-layout)
 
-(defun cel/shell-in-cwd-p (cwd)
+(defun $shell-in-cwd-p (cwd)
   (f-same? default-directory cwd))
-(advice-add 'shell-pop--cd-to-cwd :before-until 'cel/shell-in-cwd-p)
+(advice-add 'shell-pop--cd-to-cwd :before-until '$shell-in-cwd-p)
 
 (defun $scroll-shell-pop (_)
   (scroll-down 1))
@@ -181,7 +181,7 @@ don't have the technical competence to fix"
       (when (s-present? candidates)
         (s-lines candidates)))))
 
-(defun cel/proc-to-string (proc &rest args)
+(defun $proc-to-string (proc &rest args)
   (let ((buffer (generate-new-buffer "proc")))
     (apply #'call-process proc (null :in-file) buffer (null :display) args)
     (let ((output (s-trim (with-current-buffer buffer
@@ -222,7 +222,7 @@ don't have the technical competence to fix"
 
 (defun company-command--meta (cand)
   (if (s-equals? "executable" (get-text-property 0 'annotation cand))
-      (cel/proc-to-string "which" cand)
+      ($proc-to-string "which" cand)
     (get-text-property 0 'meta cand)))
 
 (defun company-command (command &optional arg &rest ignored)
@@ -312,28 +312,28 @@ don't have the technical competence to fix"
 
 (advice-add 'getenv :before (lambda (&rest _) (shell-env-sync 'env)))
 
-(defun cel/get-shell-pid ()
-  (or cel/shell-pid
+(defun $get-shell-pid ()
+  (or $shell-pid
       ;; we can only use the buffer process PID
       ;; with local shells
       (unless (file-remote-p default-directory)
-  (-some->> (current-buffer)
+        (-some->> (current-buffer)
                   get-buffer-process
                   process-id))))
 
-(defvar cel/shell-pid nil
+(defvar $shell-pid nil
   "Set this variable when the buffer process PID is not the shell PID.")
-(make-variable-buffer-local 'cel/shell-pid)
+(make-variable-buffer-local '$shell-pid)
 
 (defun shx-cmd-set-pid (pid)
   "(SAFE) sets env local shell PID.
 Add the following lines to (or equvilent) to your shell starup file
 
 echo \"<set-pid $$>\""
-  (setq cel/shell-pid pid))
+  (setq $shell-pid pid))
 
 (defun shell-env-get-file (type)
-  (-some->> (cel/get-shell-pid)
+  (-some->> ($get-shell-pid)
             (format (concat "%s." (symbol-name type)))
             (f-join env-dump-dir)
             (concat (file-remote-p default-directory))))
@@ -347,16 +347,16 @@ echo \"<set-pid $$>\""
               s-lines
               (set var))))
 
-(defvar cel:shell-env-targets '("MODEL_ROOT" "STF_SPFSPEC" "TAP_SPFSPEC" "TAP2STF_MAP_FILE" "XWEAVE" "XWEAVE_REPO_ROOT" "SPF_ROOT" "SPF_PERL_LIB"))
-(defun cel:load-shell-env ()
+(defvar $shell-env-targets '("MODEL_ROOT" "STF_SPFSPEC" "TAP_SPFSPEC" "TAP2STF_MAP_FILE" "XWEAVE" "XWEAVE_REPO_ROOT" "SPF_ROOT" "SPF_PERL_LIB"))
+(defun $load-shell-env ()
   "Load the enviroment out of shell into Emacs"
   (interactive)
-  (cl-loop for env in cel:shell-env-targets
+  (cl-loop for env in $shell-env-targets
            do (let ((val (getenv env)))
                 ;; leave the current buffer scope to write the global
                 ;; environment values
                 (with-temp-buffer
                   (setenv env val)))))
-(spacemacs/set-leader-keys-for-major-mode 'shell-mode "e" 'cel:load-shell-env)
+(spacemacs/set-leader-keys-for-major-mode 'shell-mode "e" '$load-shell-env)
 
 (provide 'shell-config)

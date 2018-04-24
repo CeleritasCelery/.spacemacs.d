@@ -17,7 +17,7 @@
 
 (setq org-todo-sort-order '("BLOCK" "TODO" "DOING" "CANCELED" "DONE"))
 
-(defun cel:user-todo-sort (a b)
+(defun $user-todo-sort (a b)
   "Sort todo based on which I want to see first"
   (when-let ((state-a (get-text-property 14 'todo-state a))
              (state-b (get-text-property 14 'todo-state b))
@@ -28,13 +28,13 @@
     (cond ((apply '> cmp) 1)
           ((apply '< cmp) -1)
           (t nil))))
-(setq org-agenda-cmp-user-defined 'cel:user-todo-sort)
+(setq org-agenda-cmp-user-defined '$user-todo-sort)
 
 
-(defun cel/org-truncate-line ()
+(defun $org-truncate-line ()
   (let ((inhibit-message t))
     (toggle-truncate-lines)))
-(add-hook 'org-mode-hook 'cel/org-truncate-line)
+(add-hook 'org-mode-hook '$org-truncate-line)
 (add-hook 'org-mode-hook 'org-indent-mode)
 
 (setq org-agenda-todo-ignore-scheduled 'future)
@@ -104,7 +104,7 @@
                        "-" (= 2 (any digit)) eos) ;; day
                    'org-journal-mode))
 
-(defun cel/filter-buffers (buffer-list)
+(defun $filter-buffers (buffer-list)
   "ignore certain types of buffers in helm mini"
   (delq nil (mapcar
              (lambda (buffer)
@@ -113,7 +113,7 @@
                 ((eq (with-current-buffer buffer major-mode)  'org-journal-mode) nil)
                 (t buffer)))
              buffer-list)))
-(advice-add 'helm-skip-boring-buffers :filter-return 'cel/filter-buffers)
+(advice-add 'helm-skip-boring-buffers :filter-return '$filter-buffers)
 
 (setq org-agenda-files (--remove (or (string-match-p "journal" it)
                                      (string-match-p "org-html-themes" it))
@@ -158,7 +158,7 @@
 (setq org-outline-path-complete-in-steps nil)   ;; Refile in a single go
 (setq org-refile-use-outline-path t)            ;; Show full paths for refiling
 
-(defun cel:org-create-css-html-email-head ()
+(defun $org-create-css-html-email-head ()
   "Create the header with CSS for use with email"
   (interactive)
   (setq org-html-head
@@ -172,9 +172,9 @@
          "/*]]>*/-->\n"
          "</style>\n"))
   t)
-(cel:org-create-css-html-email-head)
+($org-create-css-html-email-head)
 
-(defun cel:export-org-email ()
+(defun $export-org-email ()
   "Export the current org email and copy it to the clipboard"
   (interactive)
   (let ((org-export-show-temporary-export-buffer nil))
@@ -184,7 +184,7 @@
     (message "HTML copied to clipboard")))
 (with-eval-after-load 'org-capture
   (spacemacs/set-leader-keys-for-minor-mode 'org-capture-mode
-    "ee" #'cel:export-org-email
+    "ee" #'$export-org-email
     "ed" 'org-export-dispatch))
 
 (with-eval-after-load 'org-src

@@ -33,7 +33,7 @@
 
 
 (defun shell-config/post-init-evil ()
-  (evil-global-set-key 'normal (kbd "gf") 'cel/find-file-at-point))
+  (evil-global-set-key 'normal (kbd "gf") '$find-file-at-point))
 
 (spacemacs|extend-package yasnippet
   :post-init
@@ -42,8 +42,8 @@
 (spacemacs|extend-package helm
   :post-config
   (progn
-    (put 'cel/helm-ff-run-switch-to-shell 'helm-only t)
-    (define-key helm-find-files-map (kbd "M-e") 'cel/helm-ff-run-switch-to-shell)))
+    (put '$helm-ff-run-switch-to-shell 'helm-only t)
+    (define-key helm-find-files-map (kbd "M-e") '$helm-ff-run-switch-to-shell)))
 
 (spacemacs|extend-package shell-pop
   :pre-init
@@ -70,13 +70,13 @@
          (shell-pop index))))
   :post-init
   (progn
-    (defun cel/strip-tramp-cmd (args)
+    (defun $strip-tramp-cmd (args)
       (-let [(cwd) args]
         (list (s-chop-prefix (car (s-match
                                    (rx bos "/" (1+ (any word "\\:@")) ":")
                                    cwd))
                              cwd))))
-    (advice-add 'shell-pop--cd-to-cwd :filter-args #'cel/strip-tramp-cmd)))
+    (advice-add 'shell-pop--cd-to-cwd :filter-args #'$strip-tramp-cmd)))
 
 (spacemacs|use-package shx
   :defer t
@@ -121,18 +121,18 @@ This function overrides `comint-input-sender'."
   (progn
     (define-key company-active-map (kbd "RET") nil)
     (define-key company-active-map [return] nil)
-    (defun cel/company-dabbrev--skip-numbers (ret-val)
+    (defun $company-dabbrev--skip-numbers (ret-val)
       (unless (and ret-val
                    (s-matches? (rx bos (+ digit) eos) ret-val))
         ret-val))
-    (advice-add 'company-dabbrev--prefix :filter-return #'cel/company-dabbrev--skip-numbers)
+    (advice-add 'company-dabbrev--prefix :filter-return #'$company-dabbrev--skip-numbers)
 
-    (defun cel/company-select-prev-or-comint-match-input (&optional _)
+    (defun $company-select-prev-or-comint-match-input (&optional _)
       (when (and (eq major-mode 'shell-mode)
                  (eq company-selection 0))
         (company-abort)
         (call-interactively 'comint-previous-matching-input-from-input)))
-    (advice-add 'company-select-previous :before-until #'cel/company-select-prev-or-comint-match-input)
+    (advice-add 'company-select-previous :before-until #'$company-select-prev-or-comint-match-input)
     (with-eval-after-load "company-dabbrev-code"
       (add-to-list 'company-dabbrev-code-modes 'comint-mode))))
 
