@@ -92,7 +92,7 @@ values."
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '(org-projectile projectile)
    ;; A list of packages that will not be installed and loaded.
-   dotspacemacs-excluded-packages '(company-plsense origami bug-reference hl-todo)
+   dotspacemacs-excluded-packages '(company-plsense origami bug-reference hl-todo link-hint)
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
    ;; `used-only' installs only explicitly used packages and uninstall any
@@ -441,7 +441,7 @@ values."
         (error "Buffer not visiting a file"))))
 
   (setq helm-ff-auto-update-initial-value nil) ;; testing this out for helm ff
-  (setq helm-ff-candidate-number-limit 1000)
+  (setq helm-ff-candidate-number-limit 1500)
   (setq helm-ff-fuzzy-matching t)
   (setq avy-background t) ;; leaving this on for now to test the latency
   (spacemacs/declare-prefix "o" "user-defined")
@@ -507,12 +507,18 @@ values."
     (add-hook 'emacs-lisp-mode-hook 'evil-cleverparens-mode))
 
   (setq sp-echo-match-when-invisible nil)
-  (setq dired-listing-switches "-alt")
+  (setq dired-listing-switches "-alth")
 
   (defun cel/disable-modes-json ()
     (highlight-numbers-mode -1)
     (rainbow-delimiters-mode -1))
   (add-hook 'json-mode-hook 'cel/disable-modes-json)
+  (add-hook 'css-mode-hook 'rainbow-mode)
+  (font-lock-add-keywords 'sh-mode
+                  `((,(rx word-start
+                          (group (repeat 1 2 "-")
+                                 (0+ (any alnum "-_")))) 1 'font-lock-constant-face t)
+                    (,(rx "$" (group (1+ (any alnum "_")))) 1 'font-lock-builtin-face t)))
 
   (put 'cperl-indent-parens-as-block 'safe-local-variable 'booleanp)
 
@@ -537,7 +543,6 @@ values."
                         :inherit 'company-tooltip-selection
                         :weight 'bold
                         :underline nil))
-
 
   (spacemacs/set-leader-keys "bp" 'spacemacs/buffer-transient-state/previous-buffer)
   (spacemacs/set-leader-keys "bn" 'spacemacs/buffer-transient-state/next-buffer)

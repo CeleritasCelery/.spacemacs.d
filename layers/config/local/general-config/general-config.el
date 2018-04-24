@@ -49,6 +49,19 @@
   (helm-find-files-1 (string-trim (current-kill 0))))
 (spacemacs/set-leader-keys "of" #'cel/open-file-in-clipboard)
 
+(defvar cel:ediff-targets nil
+  "The last two files that were diffed")
+(defun cel:save-ediff-targets (&rest args)
+  "Save the last two ediffed files"
+  (setq cel:ediff-targets (car args)))
+(advice-add 'ediff-files-internal :filter-args #'cel:save-ediff-targets)
+
+(defun cel:run-last-ediff ()
+  "Run ediff with the last used files"
+  (interactive)
+  (apply 'ediff-files-internal cel:ediff-targets))
+(spacemacs/set-leader-keys "oe" #'cel:run-last-ediff)
+
 (defun set-tab-width (x)
   "set the tab width for the current buffer"
   (interactive "ntab-width: ")
@@ -73,7 +86,8 @@
   '((large  . "1920x1200")
     (mobile . "1536x864")
     (wide . "3840x1200")
-    (other . "1920x1080"))
+    (other . "1920x1080")
+    (short . "1920x1080"))
   "list of valid VNC dimensions")
 
 (defvar prev-vnc-size (caar window-sizes)
@@ -93,17 +107,24 @@
              (interactive)
              (vnc-resize ',name)))))
 
-(spacemacs/set-leader-keys "oii" #'vnc-prev)
-(spacemacs/set-leader-keys "oil" #'vnc-window-large)
-(spacemacs/set-leader-keys "oim" #'vnc-window-mobile)
-(spacemacs/set-leader-keys "oiw" #'vnc-window-wide)
+
+(defhydra vnc-resize (:columns 2)
+  "VNC Resize"
+  ("i" vnc-prev "prev size")
+  ("l" vnc-window-large "single monitor (large)")
+  ("m" vnc-window-mobile "mobile")
+  ("w" vnc-window-wide "double monitor (wide)")
+  ("s" vnc-window-short "standard res"))
+(spacemacs/set-leader-keys "oi" #'vnc-resize/body)
 
 (setenv "SPF_ROOT" "/p/hdk/cad/spf/latest")
 (setenv "IDS_HOME" "/p/hdk/rtl/cad/x86-64_linux26/dteg/ideas_shell/0.7.0")
 (setenv "GLOBAL_TOOLS" "/nfs/site/proj/dpg/tools")
 (setenv "DFT_GLOBAL_DIR" "/nfs/site/home/tjhinckl/workspace/chassis_dft_val_global")
 
-(setq ec-hdk (concat "/p/hdk/rtl/hdk.rc -cfg shdk" (if (eq (getenv "EC_SITE") "fc") "73" "74")))
+(setq ec-hdk (concat "/p/hdk/rtl/hdk.rc -cfg shdk" (if (equal (getenv "EC_SITE") "fc")
+                                                       "73"
+                                                     "74")))
 
 (setq spf-root (concat (getenv "SPF_ROOT") "/bin/spf_setup_env"))
 
@@ -115,134 +136,108 @@
         ("RTLMODELS"    . ,ec-hdk)
         ("SPF_PERL_LIB" . ,spf-root)))
 
-(dolist (var ec-variables)
-  (--if-let (shell-command-to-string (format "/usr/intel/bin/tcsh -c 'source %s >/dev/null; echo -n $%s'" (cdr var) (car var)))
-      (setenv (car var) it)))
+(cl-loop for var in ec-variables
+         do (when-let ((value (shell-command-to-string
+                               (format "/usr/intel/bin/tcsh -c 'source %s >/dev/null; echo -n $%s'"
+                                       (cdr var)
+                                       (car var)))))
+              (setenv (car var) value)))
 
-;; (defun cel/get-spm-model-names)
+;; the column feature does not look good with the spacemacs key-doc function
+(setq hydra-key-doc-function 'hydra-key-doc-function-default)
 
-;; (defcustom setmodel-sources
-;;   '(("/p/hdk/rtl/ip_models/shdk74" f-directories t)
-;;     ("/p/hdk/rtl/models/shdk74/config_spm" f-directories nil))
-;;   "sources for setting the model"
-;;   :type '(list (list directory function boolean)))
+(defhydra helm-nav (:foreign-keys run :hint nil :idle 1)
+  "Helm Navigation"
+  ("1" (helm-select-nth-action 1)  :exit t)
+  ("2" (helm-select-nth-action 2)  :exit t)
+  ("3" (helm-select-nth-action 3)  :exit t)
+  ("4" (helm-select-nth-action 4)  :exit t)
+  ("5" (helm-select-nth-action 5)  :exit t)
+  ("6" (helm-select-nth-action 6)  :exit t)
+  ("7" (helm-select-nth-action 7)  :exit t)
+  ("8" (helm-select-nth-action 8)  :exit t)
+  ("9" (helm-select-nth-action 9)  :exit t)
+  ("0" (helm-select-nth-action 10) :exit t)
+  ("<RET>" helm-maybe-exit-minibuffer :exit t)
+  ("j" helm-next-line "next line" :column "Lines")
+  ("k" helm-previous-line "prev line")
+  ("g" helm-beginning-of-buffer "first line")
+  ("G" helm-end-of-buffer "last line")
+  ("h" helm-previous-source "previous source" :column "Scroll")
+  ("l" helm-next-source "next source")
+  ("K" helm-scroll-other-window-down "source window down")
+  ("J" helm-scroll-other-window "source window up")
+  ("m" helm-toggle-visible-mark "mark" :column "Mode")
+  ("t" helm-toggle-all-marks "toggle all marks")
+  ("f" helm-follow-mode "follow mode")
+  ("w" helm-toggle-resplit-and-swap-windows "swap window")
+  ("a" (call-interactively 'helm-select-action) "actions" :column "Execute" :exit t)
+  ("e" helm-edit "edit" :exit t)
+  ("y" helm-copy-to-kill-ring "yank" :exit t)
+  ("v" helm-execute-persistent-action "view")
+  ("H" helm-help "help" :column "Other" :exit t)
+  ("q" nil "quit" :exit t))
 
-;; (setq setmodel-sources
-;;       '(("/p/hdk/rtl/ip_models/shdk74" f-directories t)
-;;         ("/p/hdk/rtl/models/shdk74/config_spm" f-directories nil)))
+(defhydra helm-ff-nav (:foreign-keys run :inherit (helm-nav/heads) :exit t :columns 3 :idle 1)
+  "Helm Find Files"
+  ("c" helm-ff-run-copy-file "copy")
+  ("d" helm-ff-run-delete-file "delete")
+  ("s" helm-ag-from-session "search")
+  ("/" helm-ff-run-find-sh-command "find")
+  ("z" helm-fzf-from-session "fzf")
+  ("x" helm-ff-run-ediff-file "ediff")
+  ("o" cel/helm-ff-run-switch-to-shell "shell")
+  ("i" helm-ff-file-name-history "file history")
+  ("r" helm-ff-run-switch-to-history "directory history"))
 
-;; (defun shx-cmd-setmodel ()
-;;   (interactive)
-;;   (let* ((models (-flatten (--map (funcall (cadr it) (car it)) setmodel-sources)))
-;;          (model (completing-read "Select Model: " models))
-;;          (base (f-filename model))
-;;          ;; (version (completing-read "Select Version: " (-map 'f-filename (f-directories model-path))))
-;;          ;; (model-root (f-join model-path version)))
-;;          ;; (setenv "MODEL_ROOT" (concat root "/" model))
-;;          ;; (message "%s" model)
-;;          )
-;;     (when (f-parent-of? "/p/hdk/rtl/ip_models/shdk74" model)
-;;       (setq model (f-join model (completing-read "Select Version: " (-map 'f-filename (f-directories model))))))
-;;     (comint-simple-send nil (format "export MODEL_ROOT=%s" model))
-;;     ))
-
-;; /p/hdk/rtl/models/shdk74/config_spm/config_spm-srvr10nm-snr_0p8-17ww49a
-
-(defhydra helm-like-unite (:hint nil
-                                 :color pink)
-  "
-Nav ^^^^^^^^^        Mark ^^          Other ^^       Quit
-^^^^^^^^^^------------^^----------------^^----------------------
-_K_ ^ ^ _k_ ^ ^     _m_ark           _v_iew         _i_: cancel
-^↕^ _h_ ^✜^ _l_     _t_oggle mark    _H_elp         _o_: quit
-_J_ ^ ^ _j_ ^ ^     _U_nmark all     _d_elete
-^^^^^^^^^^                           _f_ollow: %(helm-attr 'follow)
-"
-  ;; arrows
-  ("h" helm-beginning-of-buffer)
-  ("j" helm-next-line)
-  ("k" helm-previous-line)
-  ("l" helm-end-of-buffer)
-  ;; beginning/end
-  ("g" helm-beginning-of-buffer)
-  ("G" helm-end-of-buffer)
-  ;; scroll
-  ("K" helm-scroll-other-window-down)
-  ("J" helm-scroll-other-window)
-  ;; mark
-  ("m" helm-toggle-visible-mark)
-  ("t" helm-toggle-all-marks)
-  ("U" helm-unmark-all)
-  ;; exit
-  ("<escape>" keyboard-escape-quit "" :exit t)
-  ("o" keyboard-escape-quit :exit t)
-  ("i" nil)
-  ;; sources
-  ("}" helm-next-source)
-  ("{" helm-previous-source)
-  ;; rest
-  ("H" helm-help)
-  ("v" helm-execute-persistent-action)
-  ("d" helm-persistent-delete-marked)
-  ("f" helm-follow-mode))
-
-
-(defun helm-persistent-delete-marked ()
-  "Kill buffer without quitting helm."
+(defun helm-edit ()
+  "Switch in edit mode depending on the current helm buffer."
   (interactive)
-  (if (equal (cdr (assoc 'name (helm-get-current-source)))
-             "Buffers")
-      (with-helm-alive-p
-        (helm-attrset 'kill-action
-                      '(helm-persistent-kill-buffers . never-split))
-        (helm-execute-persistent-action 'kill-action))
-    (user-error "Only works for buffers")))
+  (cond
+   ((equal "*helm-ag*" helm-buffer)
+    (helm-ag-edit))
+   ((equal "*helm find files*" helm-buffer)
+    ;; TODO: make this respect candidates
+    (helm-find-files-edit))
+   ((equal "*Helm Swoop*" helm-buffer)
+    (helm-swoop-edit))
+   (t (error "No editing function bound"))))
 
-(defun helm-persistent-kill-buffers (_buffer)
-  (unwind-protect
-      (dolist (b (helm-marked-candidates))
-        (helm-buffers-persistent-kill-1 b))
-    (with-helm-buffer
-      (setq helm-marked-candidates nil
-            helm-visible-mark-overlays nil))
-    (helm-force-update (helm-buffers--quote-truncated-buffer
-                        (helm-get-selection)))))
+(defun helm-ag-from-session ()
+  "Launch `helm-ag' from within a helm session"
+  (interactive)
+  (with-helm-alive-p
+    (helm-run-after-exit
+     'helm-do-ag
+     helm-ff-default-directory (helm-marked-candidates))))
 
 (defun helm-copy-to-kill-ring ()
   "Copy selection or marked candidates to the kill ring.
 Note that the real values of candidates are copied and not the
-display values."
+display values.
+If a file name, copy the full path"
   (interactive)
   (with-helm-alive-p
     (helm-run-after-exit
      (lambda (cands)
        (with-helm-current-buffer
-         (kill-new (mapconcat (lambda (c)
-                                (format "%s" (if (file-exists-p c)
-                                                 (file-truename c)
-                                               c)))
-                              cands "\n"))))
+         (kill-new (mapconcat
+                    (lambda (c)
+                      (format "%s" (if (and (stringp c)
+                                            (file-exists-p c))
+                                       (file-truename c)
+                                     c)))
+                    cands "\n"))))
      (helm-marked-candidates))))
+
 (with-eval-after-load "helm"
-  (define-key helm-map (kbd "C-o") 'helm-like-unite/body)
+  (define-key helm-map (kbd "C-o") 'helm-nav/body)
   (define-key helm-map (kbd "C-c y") 'helm-copy-to-kill-ring)
   (put 'helm-copy-to-kill-ring 'helm-only t))
-
-
-(defun set-model ()
-  (interactive)
-  (let (models model versions version duts dut model-root)
-    (setq models (s-lines (shell-command-to-string (format "find %s/ -maxdepth 1 2>/dev/null" (getenv "IP_MODELS")))))
-    (setq model (completing-read "Select Model: " (mapcar 'file-name-nondirectory models)))
-    (setq versions (s-lines (shell-command-to-string (concat "find " (getenv "IP_MODELS") "/" model "/ -maxdepth 1 2>/dev/null"))))
-    (setq version (completing-read "Select Version: " (mapcar 'file-name-nondirectory versions)))
-    (setq model-root (concat (getenv "IP_MODELS") "/" model "/" version))
-    (setenv "MODEL_ROOT" model-root)
-
-    (setq duts (s-lines (shell-command-to-string (concat "find " model-root "/tools/ipgen/ -maxdepth 1 -type d 2>/dev/null"))))
-    (setq dut (completing-read "Select DUT: " (mapcar 'file-name-nondirectory duts)))
-    (setenv "STF_SPFSPEC" (concat model-root "/tools/ipgen/" dut "/output/dft/verif/rtl/spf/" dut ".stf.spfspec"))
-    (setenv "TAP_SPFSPEC" (concat model-root "/tools/ipgen/" dut "/output/dft/verif/rtl/spf/" dut ".tap.spfspec"))))
+(with-eval-after-load 'helm-files
+  (define-key helm-find-files-map (kbd "C-c s") 'helm-ag-from-session)
+  (define-key helm-find-files-map (kbd "C-o") 'helm-ff-nav/body)
+  (put 'helm-ag-from-session 'helm-only t))
 
 (defun mc-column--col-at-point (point)
   (save-excursion (goto-char point) (current-column)))
@@ -449,20 +444,6 @@ If COUNT is given, move COUNT - 1 lines downward first."
       (helm-find-files-1 dir)
     (user-error "Directory letter does not exist")))
 (spacemacs/set-leader-keys "od" #'cel/goto-bookmarked-dir)
-
-(defvar cel/itpp-espf-search-path '(""))
-(defun cel/switch-itpp-espf ()
-  (interactive)
-  (if-let ((ext (if (equal "itpp" (file-name-extension (buffer-file-name)))
-                    ".espf"
-                  ".itpp"))
-           (other-file (concat (file-name-base) ext))
-           (dir (seq-find (lambda (x)
-                            (file-exists-p
-                             (expand-file-name other-file x)))
-                          cel/itpp-espf-search-path)))
-      (switch-to-buffer (find-file-noselect (expand-file-name other-file dir)))
-    (error "unable to find matching itpp/espf file")))
 
 (defun call-keymap (map &optional prompt)
   "Read a key sequence and call the command it's bound to in MAP.
