@@ -33,6 +33,8 @@
   '(
     (general-config :location local)
     (org-config :location local)
+    (helm-ff-edit :location local)
+    (helm-fzf :location local)
     evil-lion
     helm
     (find-protocol-file :location local)
@@ -47,7 +49,25 @@
     swiper
     counsel
     smex
+    eval-in-repl
+    #targets.el
     ))
+
+(defun config/init-eval-in-repl ()
+  (use-package eval-in-repl :ensure t
+    :config
+    (define-key sh-mode-map (kbd "<C-return>") 'eir-eval-in-shell)))
+
+(defun config/init-helm-fzf ()
+  (use-package helm-fzf
+    :defer t))
+
+(defun config/init-helm-ff-edit ()
+  (use-package helm-ff-edit
+    :defer t
+    :init
+    (with-eval-after-load 'helm-files
+      (define-key helm-find-files-map (kbd "C-c C-e") 'helm-find-files-edit))))
 
 (defun config/init-ivy ()
   (use-package ivy
@@ -63,7 +83,7 @@
     (require 'ivy-hydra)
     (evil-make-overriding-map ivy-occur-mode-map 'normal)
     ;; https://github.com/syl20bnr/spacemacs/issues/7516
-    ))
+    (define-key ivy-minibuffer-map (kbd "TAB") 'ivy-alt-done)))
 
 (defun config/init-ivy-hydra ()
   (use-package ivy-hydra
@@ -172,10 +192,10 @@
 
 (defun config/init-find-protocol-file ()
   (use-package find-protocol-file
-    :commands cel/switch-itpp-espf
+    :commands find-protocol-file
     :init
     (dolist (mode '(itpp-mode cperl-mode perl-mode))
-      (spacemacs/set-leader-keys-for-major-mode mode "s" #'cel/switch-itpp-espf))))
+      (spacemacs/set-leader-keys-for-major-mode mode "s" #'find-protocol-file))))
 
 
 ;;; packages.el ends here
