@@ -181,14 +181,15 @@
 (defhydra helm-ff-nav (:foreign-keys run :inherit (helm-nav/heads) :exit t :columns 3 :idle 1)
   "Helm Find Files"
   ("c" helm-ff-run-copy-file "copy")
-  ("d" helm-ff-run-delete-file "delete")
+  ("D" helm-ff-run-delete-file "delete and quit")
+  ("d" helm-ff-persistent-delete "delete")
   ("s" helm-ag-from-session "search")
   ("/" helm-ff-run-find-sh-command "find")
   ("z" helm-fzf-from-session "fzf")
   ("x" helm-ff-run-ediff-file "ediff")
   ("o" $helm-ff-run-switch-to-shell "shell")
   ("i" helm-ff-file-name-history "file history")
-  ("r" helm-ff-run-switch-to-history "directory history"))
+  ("r" helm-find-files-history "directory history"))
 
 (defun helm-edit ()
   "Switch in edit mode depending on the current helm buffer."
@@ -209,7 +210,12 @@
   (with-helm-alive-p
     (helm-run-after-exit
      'helm-do-ag
-     helm-ff-default-directory (helm-marked-candidates))))
+     helm-ff-default-directory
+     (let ((cand (helm-marked-candidates)))
+       ;; if we have not marked anything we want to search the current directory
+       (unless (equal (list (helm-get-selection))
+                      cand)
+         cand)))))
 
 (defun helm-copy-to-kill-ring ()
   "Copy selection or marked candidates to the kill ring.
@@ -237,6 +243,7 @@ If a file name, copy the full path"
 (with-eval-after-load 'helm-files
   (define-key helm-find-files-map (kbd "C-c s") 'helm-ag-from-session)
   (define-key helm-find-files-map (kbd "C-o") 'helm-ff-nav/body)
+  (define-key helm-read-file-map (kbd "C-o") 'helm-ff-nav/body)
   (put 'helm-ag-from-session 'helm-only t))
 
 (defun mc-column--col-at-point (point)
