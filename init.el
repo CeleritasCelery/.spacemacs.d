@@ -187,7 +187,7 @@ values."
    ;; and TAB or <C-m> and RET.
    ;; In the terminal, these pairs are generally indistinguishable, so this only
    ;; works in the GUI. (default nil)
-   dotspacemacs-distinguish-gui-tab nil
+   dotspacemacs-distinguish-gui-tab t
    ;; If non nil `Y' is remapped to `y$' in Evil states. (default nil)
    dotspacemacs-remap-Y-to-y$ t
    ;; If non-nil, the shift mappings `<' and `>' retain visual state if used
@@ -356,8 +356,7 @@ values."
 
   (setq prettify-symbols-unprettify-at-point t)
 
-  (setq-default tab-width 4 ;; colunms per "tab"
-                require-final-newline t ;; always require a newline at end of the file for compatibility
+  (setq-default require-final-newline t ;; always require a newline at end of the file for compatibility
                 visual-line-mode t ;; cursor keys move by visual lines, not logical ones
                 evil-snipe-scope 'line         ;; snipe current line only
                 evil-snipe-repeat-scope 'line) ;; repeated snipes will stay on line
@@ -416,6 +415,7 @@ values."
   (evil-global-set-key 'visual (kbd "0"  ) 'evil-first-non-blank)
   (evil-global-set-key 'visual (kbd "^"  ) 'evil-digit-argument-or-evil-beginning-of-line)
   (evil-global-set-key 'normal (kbd "C-s") 'evil-search-next)
+  (evil-global-set-key 'normal (kbd "gR") 'apply-macro-to-region-lines)
 
   (spacemacs/set-leader-keys "ii" 'aya-create)
   (evil-global-set-key 'insert (kbd "C-'") 'aya-expand)
@@ -478,8 +478,7 @@ values."
 
   (spacemacs/set-leader-keys-for-major-mode 'json-mode "p" 'jsons-print-path) ;; print the json path of object
 
-  (set-face-attribute 'font-lock-comment-face nil
-                      :background "#293038") ;; this looks better with 15 or 16 bit color
+  ;; (set-face-attribute 'font-lock-comment-face nil :background "#293038") ;; this looks better with 15 or 16 bit color
   (blink-cursor-mode)
   ;; TRAMP
   (with-eval-after-load "tramp"
@@ -487,7 +486,8 @@ values."
     (setq tramp-default-user "tjhinckl")
     ;; set TRAMP verbosity to warnings and errors only. default is level 3 which
     ;; sends a message every time we connect to a remote host
-    (setq tramp-verbose 4)
+    (setq tramp-verbose 3)
+    (setq helm-tramp-connection-min-time-diff 1)
 
     ;; https://emacs.stackexchange.com/questions/29286/tramp-unable-to-open-some-files
     (setq tramp-inline-compress-start-size 1000000)
@@ -514,11 +514,12 @@ values."
     (rainbow-delimiters-mode -1))
   (add-hook 'json-mode-hook '$disable-modes-json)
   (add-hook 'css-mode-hook 'rainbow-mode)
+
   (font-lock-add-keywords 'sh-mode
-                          `((,(rx word-start
-                                  (group (repeat 1 2 "-")
-                                         (0+ (any alnum "-_")))) 1 'font-lock-constant-face t)
-                            (,(rx "$" (group (1+ (any alnum "_")))) 1 'font-lock-builtin-face t)))
+                  `((,(rx word-start
+                          (group (repeat 1 2 "-")
+                                 (0+ (any alnum "-_")))) 1 'font-lock-constant-face t)
+                    (,(rx "$" (group (1+ (any alnum "_")))) 1 'font-lock-builtin-face t)))
 
   (put 'cperl-indent-parens-as-block 'safe-local-variable 'booleanp)
 
@@ -533,8 +534,8 @@ values."
 
   ;; https://github.com/syl20bnr/spacemacs/tree/master/layers/%2Bcompletion/auto-completion#improved-faces
   (with-eval-after-load 'company
-    (define-key company-active-map (kbd "<tab>") 'company-complete-common)
     (define-key company-active-map (kbd "TAB") 'company-complete-common)
+    (define-key company-active-map (kbd "<tab>") 'company-complete-common)
     (set-face-attribute 'company-tooltip-common nil
                         :inherit 'company-tooltip
                         :weight 'bold
@@ -549,10 +550,21 @@ values."
 
   (setq default-input-method "TeX")
 
+  (defun $copy-file ()
+    (interactive)
+    (let* ((destination (read-file-name "Write File: "))
+           (dir (file-name-directory destination)))
+      (unless (file-exists-p dir)
+        (make-directory dir :parents))
+      (write-file destination :confirm)))
+  (spacemacs/set-leader-keys "fc" #'$copy-file)
+
+  (helm-adaptive-mode)
   (global-linum-mode -1)
+
+  (spacemacs/set-leader-keys "tq" #'toggle-debug-on-quit)
+  (spacemacs/set-leader-keys "te" #'toggle-debug-on-error)
 
   ;; fixes https://github.com/syl20bnr/spacemacs/pull/10585
   (global-set-key (kbd "M-x") 'helm-M-x)
-  (spacemacs/set-leader-keys dotspacemacs-command-key 'helm-M-x)
-
-  )
+  (spacemacs/set-leader-keys dotspacemacs-command-key 'helm-M-x))
