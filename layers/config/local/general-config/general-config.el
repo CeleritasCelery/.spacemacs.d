@@ -108,7 +108,7 @@
              (vnc-resize ',name)))))
 
 
-(defhydra vnc-resize (:columns 2)
+(defhydra vnc-resize (:columns 2 :exit t :idle 0.5)
   "VNC Resize"
   ("i" vnc-prev "prev size")
   ("l" vnc-window-large "single monitor (large)")
