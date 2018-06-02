@@ -40,7 +40,6 @@
 (setq org-agenda-todo-ignore-scheduled 'future)
 (setq org-enforce-todo-dependencies t)
 (setq org-agenda-dim-blocked-tasks 'invisible)
-(setq org-startup-folded nil)
 
 (setq user-full-name "Troy Hinckley")
 
@@ -49,8 +48,7 @@
       org-export-with-toc nil
       org-export-with-sub-superscripts '{}
       org-export-with-priority t
-      org-export-preserve-breaks t
-      org-insert-heading-respect-content t)
+      org-export-preserve-breaks t)
 
 ;; org-startup-folded nil
 ;; org-html-table-default-attributes '(:border "2" :rules "all" :frame "border")
@@ -68,19 +66,19 @@
                    :unless '(sp-point-after-word-p)
                    :post-handlers '(("[d1]" "SPC")))))
 
+(setq org-journal-file-format "%Y-%m-%d")
+(setq org-journal-carryover-items nil)
+(setq org-directory "~/org")
 (with-eval-after-load 'org
-  (setq org-journal-file-format "%Y-%m-%d")
-  (setq org-journal-carryover-items nil)
-  (setq org-directory "~/org")
-  (setq org-default-notes-file (concat org-directory "/dev/notes.org"))
-  (setq org-default-email-file (concat org-directory "/dev/email.org"))
-  (setq org-default-journal-file (concat org-directory "/dev/journal.org"))
-  (setq org-journal-dir (expand-file-name "journal" org-directory)) ;; keep all techical journals here
-  (setq org-agenda-file-regexp (rx bos
-                                   (or (1+ (in "-" digit)) ;; numeric journal files
-                                       (and (not (any ".")) ;; regular org files (foo.org)
-                                            (0+ nonl) ".org"))
-                                   eos)))
+  (setq org-default-notes-file (expand-file-name "notes.org" org-directory)))
+(setq org-default-email-file (expand-file-name "email.org" org-directory))
+(setq org-default-journal-file (expand-file-name "journal.org" org-directory))
+(setq org-journal-dir (expand-file-name "journal" org-directory)) ;; keep all techical journals here
+(setq org-agenda-file-regexp (rx bos
+                                 (or (1+ (in "-" digit)) ;; numeric journal files
+                                     (and (not (any ".")) ;; regular org files (foo.org)
+                                          (0+ nonl) ".org"))
+                                 eos))
 
 
 (defun org-archive-done-tasks ()
@@ -110,14 +108,10 @@
              (lambda (buffer)
                (cond
                 ((eq (with-current-buffer buffer major-mode)  'org-agenda-mode) nil)
-                ((eq (with-current-buffer buffer major-mode)  'org-journal-mode) nil)
                 (t buffer)))
              buffer-list)))
 (advice-add 'helm-skip-boring-buffers :filter-return '$filter-buffers)
 
-(setq org-agenda-files (--remove (or (string-match-p "journal" it)
-                                     (string-match-p "org-html-themes" it))
-                                 (f-directories org-directory nil t))) ;; where to search for TODO's
 (defun $org-smart-return ()
   "if in a list return should add a new item. If the item is
 blank, we want to break out of the list and delete the blank
@@ -178,19 +172,24 @@ item"
          "* %?" :empty-lines 1)
         ("N" "Note with Clipboard" entry (file+headline org-default-notes-file "Notes")
          "* %?\n   %c" :empty-lines 1)
-        ("e" "Email" plain (file org-default-email-file)
-         "%?" :empty-lines 1)
+        ("e" "Email" entry (file org-default-email-file)
+         "* %?" :empty-lines 1)
         ("j" "Journal" entry (file org-default-journal-file)
          "* %<%a %b %e, %l:%M> -  %?" :empty-lines 1)))
 (spacemacs/set-leader-keys "oo" 'org-capture)
 
-
-(setq org-refile-targets '((nil :maxlevel . 4)
-                           (org-agenda-files :maxlevel . 3)
-                           ("~/org/dev/.development.org" :maxlevel . 1)))
+(setq org-refile-targets '((nil :maxlevel . 2)
+                           ("projects/mdf.org" :maxlevel . 2)
+                           ("projects/snr/snr_scan.org" :maxlevel . 2)
+                           ("meeting-notes/mdf_meet.org" :maxlevel . 2)
+                           ("meeting-notes/integ_meet.org" :maxlevel . 2)
+                           ("dev/.development.org" :maxlevel . 1)))
 
 (setq org-outline-path-complete-in-steps nil)   ;; Refile in a single go
-(setq org-refile-use-outline-path t)            ;; Show full paths for refiling
+(setq org-refile-use-outline-path 'file)            ;; Show full paths for refiling
+
+(setq org-clock-persist 'history)
+(org-clock-persistence-insinuate)
 
 (defun $org-create-css-html-email-head ()
   "Create the header with CSS for use with email"
