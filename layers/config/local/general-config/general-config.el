@@ -569,6 +569,7 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
   ("p" compilation-previous-error "previous")
   ("k" compilation-previous-error))
 
+(autoload 'reb-change-syntax "pcre2el")
 
 (defun $normalize-region (beg end)
   "normalize characters used in Microsoft formatting"
@@ -598,6 +599,11 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
   (apply #'$normalize-region (cl-sort (list (point) (mark t)) '<)))
 (advice-add 'yank :after #'$normalize-yank)
 
+(defmacro measure-time (&rest body)
+  "Measure the time it takes to evaluate BODY."
+  `(let ((time (current-time)))
+     ,@body
+     (message "%.06f" (float-time (time-since time)))))
 
 (setq json-encoding-default-indentation "    ")
 

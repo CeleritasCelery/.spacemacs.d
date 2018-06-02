@@ -1,5 +1,7 @@
 ;;; company-async-files.el --- company backend for files  -*- lexical-binding: t; -*-
 
+;; change this to use ls -F
+
 (require 'company)
 (require 'dash)
 (require 's)

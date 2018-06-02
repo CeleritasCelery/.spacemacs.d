@@ -8,6 +8,7 @@
 (setq shell-file-name "bash")
 (setq comint-scroll-to-bottom-on-input t)
 (setq comint-process-echoes t)
+(setq comint-buffer-maximum-size 10000)
 
 (defvar $dir-history nil
   "previous shell directories")
@@ -126,11 +127,8 @@ don't have the technical competence to fix"
 
   (advice-add 'comint-previous-matching-input-from-input :before '$goto-cmd-line)
   (advice-add 'comint-next-matching-input-from-input :before '$goto-cmd-line)
-  (add-hook 'comint-preoutput-filter-functions
-            '$supress-hostkey-warning (not :append) :local)
-  (add-hook 'comint-preoutput-filter-functions
-            'track-shell-directory/procfs (not :append) :local)
-  )
+  (add-hook 'comint-preoutput-filter-functions '$supress-hostkey-warning nil 'local)
+  (add-hook 'comint-preoutput-filter-functions 'track-shell-directory/procfs nil 'local))
 (add-hook 'shell-mode-hook '$shell-mode-hook)
 
 (defun $add-shell-to-layout ()

@@ -65,15 +65,14 @@
 (defun config/init-eval-in-repl ()
   (use-package eval-in-repl :ensure t
     :config
-    (define-key sh-mode-map (kbd "<C-return>") 'eir-eval-in-shell)))
+    (with-eval-after-load 'sh-mode
+      (define-key sh-mode-map (kbd "<C-return>") 'eir-eval-in-shell))))
 
 (defun config/init-helm-fzf ()
-  (use-package helm-fzf
-    :defer t))
+  (use-package helm-fzf))
 
 (defun config/init-helm-ff-edit ()
   (use-package helm-ff-edit
-    :defer t
     :init
     (with-eval-after-load 'helm-files
       (define-key helm-find-files-map (kbd "C-c C-e") 'helm-find-files-edit))))
@@ -194,10 +193,10 @@
                 ("g L " . evil-lion-right))))
 
 (defun config/init-general-config ()
-  (use-package general-config))
+  (require 'general-config))
 
 (defun config/init-org-config ()
-  (use-package org-config))
+  (require 'org-config))
 
 (defun config/init-find-protocol-file ()
   (use-package find-protocol-file
