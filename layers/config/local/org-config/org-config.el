@@ -118,6 +118,29 @@
 (setq org-agenda-files (--remove (or (string-match-p "journal" it)
                                      (string-match-p "org-html-themes" it))
                                  (f-directories org-directory nil t))) ;; where to search for TODO's
+(defun $org-smart-return ()
+  "if in a list return should add a new item. If the item is
+blank, we want to break out of the list and delete the blank
+item"
+  (interactive)
+  (if (org-at-item-p)
+      (if (and (looking-back (rx space) (- (point) 1))
+               (memq (- (point) (org-in-item-p) (current-indentation))
+                     (number-sequence 1 3)))
+          ;; If at a blank item, delete it
+          (progn
+            (beginning-of-line)
+            (kill-line)
+            (org-return))
+        ;; If at a non-blank item, insert a new item
+        (org-return)
+        (org-insert-item))
+    ;; If not at item, normal return
+    (org-return)))
+(with-eval-after-load 'org
+  (define-key org-mode-map (kbd "<ret>") '$org-smart-return)
+  (define-key org-mode-map (kbd "RET") '$org-smart-return))
+
 
 (spacemacs|define-transient-state org-journal
   :title "navigate org journals"
