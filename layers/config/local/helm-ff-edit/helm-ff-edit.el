@@ -1,9 +1,7 @@
 ;;; helm-ff-edit.el --- occur for helm  -*- lexical-binding: t; -*-
 
 (defvar helm-occur-cmd "ls -a | ag --nocolor '%s' | tr '\\n' '\\0' | xargs -0 ls -d --group-directories-first")
-(defvar helm-dired-listing-switches (if counsel-dired-listing-switches
-                                        counsel-dired-listing-switches
-                                      "-alh"))
+(defvar helm-dired-listing-switches "-alh")
 
 (defun helm-ff-edit--get-file-re ()
   (let* ((submatchs (thread-last helm-pattern
