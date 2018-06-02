@@ -24,12 +24,10 @@
     ))
 
 (defun major-modes/init-itpp-mode ()
-  (use-package itpp-mode
-    :defer t))
+  (use-package itpp-mode))
 
 (defun major-modes/init-reglist-mode ()
   (use-package reglist-mode
-    :defer t
     :config
     (spacemacs/set-leader-keys-for-major-mode 'reglist-mode "c" #'reglist-creed-wrap)
     (spacemacs/set-leader-keys-for-major-mode 'reglist-mode "a" #'reglist-ace-wrap)))
@@ -39,7 +37,6 @@
 
 (defun major-modes/init-spfspec-mode ()
   (use-package spfspec-mode
-    :defer t
     :init
     (with-eval-after-load "smartparens"
       (sp-local-pair 'spfspec-mode "'" nil :actions nil))
@@ -54,12 +51,10 @@
        highlight-numbers-modelist))))
 
 (defun major-modes/init-postsim-mode ()
-  (use-package postsim-mode
-    :defer t))
+  (use-package postsim-mode))
 
 (defun major-modes/init-tracker-mode ()
-  (use-package tracker-mode
-    :defer t))
+  (use-package tracker-mode))
 
 (defun major-modes/init-spf-mode ()
   (use-package spf-mode))
