@@ -422,6 +422,18 @@ If a file name, copy the full path"
   (advice-add 'helm-find-files-get-candidates
               :filter-return '$helm-ff-dots-at-bottom))
 
+(defun $plist-get (list prop)
+  (when-let ((index (1+ (seq-position list prop))))
+    (nth index list)))
+
+(defun $truename-files (args)
+  "make helm dired actions use absolute paths"
+  (let* ((index (1+ (seq-position args :files)))
+         (files (mapcar #'file-truename (nth index args))))
+    (setf (nth index args) files)
+    args))
+(advice-add 'helm-dired-action :filter-args #'$truename-files)
+
 (defvar evil-v$-gets-eol nil)
 
 (evil-define-motion evil-end-of-line (count)
