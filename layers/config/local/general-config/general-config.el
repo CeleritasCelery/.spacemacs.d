@@ -570,6 +570,35 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
   ("k" compilation-previous-error))
 
 
+(defun $normalize-region (beg end)
+  "normalize characters used in Microsoft formatting"
+  (interactive "r")
+  (save-excursion
+    (goto-char beg)
+    (when (re-search-forward (rx (char "–‘’“”")) end 'no-error)
+      (let* ((orig-text (buffer-substring beg end))
+             (normalized-text
+              (thread-last orig-text
+                (replace-regexp-in-string "–" "--") ;; Em-dash
+                (replace-regexp-in-string (rx (char "‘’")) "'")
+                (replace-regexp-in-string (rx (char "“”")) "\""))))
+        (goto-char beg)
+        (delete-region beg end)
+        (insert normalized-text)))))
+
+(defun $normalize-evil-paste (&rest _)
+  "Normalize last evil paste"
+  ($normalize-region (save-excursion (evil-goto-mark ?\[) (point))
+                     (1+ (save-excursion (evil-goto-mark ?\]) (point)))))
+(advice-add 'evil-paste-after :after #'$normalize-evil-paste)
+(advice-add 'evil-paste-before :after #'$normalize-evil-paste)
+
+(defun $normalize-yank (&rest _)
+  "normalize last emacs yank"
+  (apply #'$normalize-region (cl-sort (list (point) (mark t)) '<)))
+(advice-add 'yank :after #'$normalize-yank)
+
+
 (setq json-encoding-default-indentation "    ")
 
 (defvar $json-array-max-cuddle-size 3
