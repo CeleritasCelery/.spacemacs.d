@@ -16,7 +16,7 @@
   '(
     (itpp-mode    :location local)
     (reglist-mode :location local)
-    (sdgc-mode    :location local)
+    (sgdc-mode    :location local)
     (spfspec-mode :location local)
     (postsim-mode :location local)
     (tracker-mode :location local)
@@ -33,9 +33,8 @@
     (spacemacs/set-leader-keys-for-major-mode 'reglist-mode "c" #'reglist-creed-wrap)
     (spacemacs/set-leader-keys-for-major-mode 'reglist-mode "a" #'reglist-ace-wrap)))
 
-(defun major-modes/init-sdgc-mode ()
-  (use-package sgdc-mode
-    :defer t))
+(defun major-modes/init-sgdc-mode ()
+  (use-package sgdc-mode))
 
 (defun major-modes/init-spfspec-mode ()
   (use-package spfspec-mode
