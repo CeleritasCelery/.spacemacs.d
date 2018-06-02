@@ -17,12 +17,14 @@
 
 (defun $get-path-at-point ()
   (replace-regexp-in-string
-   "\"" ""
-   (apply 'buffer-substring-no-properties
-          (--map (save-excursion
-                   (funcall it "-[:alnum:]$/._~\"")
-                   (point))
-                 '(skip-chars-backward skip-chars-forward)))))
+   "/+" "/"
+   (replace-regexp-in-string
+    "\"" ""
+    (apply 'buffer-substring-no-properties
+           (--map (save-excursion
+                    (funcall it "-[:alnum:]$/._~\"")
+                    (point))
+                  '(skip-chars-backward skip-chars-forward))))))
 
 (defun shx-send-input-or-copy-path ()
   (interactive)
@@ -37,4 +39,6 @@
 the full power of helm"
   (interactive)
   (let ((file ($get-path-at-point)))
-    (helm-find-files-1 file (file-name-base file))))
+    (helm-find-files-1 (concat (or (file-remote-p default-directory) "")
+                               file)
+                       (file-name-base file))))
