@@ -450,9 +450,14 @@ If COUNT is given, move COUNT - 1 lines downward first."
       ;; prevent "c$" and "d$" from deleting blank lines
       (setq evil-this-type 'exclusive))))
 
+(evil-define-text-object evil-filename (count &rest args)
+  (let ((bounds (bounds-of-thing-at-point 'filename)))
+    (list (car bounds) (cdr bounds))))
+(define-key evil-inner-text-objects-map "F" 'evil-filename)
+
 (defvar $bookmarked-dirs '((?r . "/nfs/site/home/tjhinckl/workspace/models/snr/tests/scan/custom/snr/snr/")
-                              (?s . "/nfs/site/home/tjhinckl/workspace/models/snr/scan_tests/1p0/")
-                              (?l . "/nfs/site/home/tjhinckl/workspace/models/snr/tests/scan/custom/")))
+                           (?s . "/nfs/site/home/tjhinckl/workspace/models/snr/scan_tests/1p0/")
+                           (?l . "/nfs/site/home/tjhinckl/workspace/models/snr/tests/scan/custom/")))
 (defun $goto-bookmarked-dir ()
   (interactive)
   (if-let ((key (read-char "Directory letter: "))
