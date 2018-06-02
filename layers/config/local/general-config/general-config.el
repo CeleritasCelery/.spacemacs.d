@@ -482,11 +482,88 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
            (,(intern func-name))
            (set-window-buffer (selected-window) old-buf)
            (select-window (window-in-direction ',direction)))))))
-($create-split-fn right)
-($create-split-fn below)
 
-(spacemacs/set-leader-keys "wv" '$split-window-right)
-(spacemacs/set-leader-keys "ws" '$split-window-below)
+(defun $run-ipgen (arg)
+  "run dft ipgen in the current model"
+  (interactive "P")
+  (let* ((model-root (vc-git-root default-directory))
+         (ipgen (f-join model-root "tools/ipgen/"))
+         (dut (completing-read "select DUT: "
+                               (-map 'f-filename
+                                     (f--directories ipgen (member "setup" (directory-files it))))))
+         (default-directory (f-join ipgen dut))
+         (compilation-environment (list (concat "MODEL_ROOT=" model-root)))
+         (compilation-buffer-name-function
+          (lambda (major-mode)
+            (concat "*" (f-filename model-root) " " dut " " (downcase major-mode) "*"))))
+    (compile (concat "source setup && $DFT_REPO_ROOT/DFTNetworkGen/run_dft_ipgen"
+                     (if arg "" " -B")))))
+
+(defun $run-bman ()
+  "run dft ipgen in the current model"
+  (interactive)
+  (let* ((model-root (file-truename (vc-git-root default-directory)))
+         (compilation-environment (list (concat "MODEL_ROOT=" model-root)))
+         (compilation-buffer-name-function
+          (lambda (major-mode)
+            (concat "*" (f-filename model-root) " bman " (downcase major-mode) "*"))))
+    ;; TODO: need to remove this hardcoded value
+    (compile "source /p/hdk/rtl/hdk.rc -cfg shdk74 && bman -dut mdf_10nm")))
+(spacemacs/set-leader-keys "ci" '$run-ipgen)
+
+(defun $compile-with-tcsh (fn &rest args)
+  (let ((shell-file-name "tcsh"))
+    (apply fn args)))
+(advice-add 'compile :around #'$compile-with-tcsh)
+(advice-add 'recompile :around #'$compile-with-tcsh)
+
+(with-eval-after-load 'compile
+  (font-lock-add-keywords 'compilation-mode
+                  `((,(rx bol (0+ space)
+                          (group "#" (0+ nonl)))
+                     1 'font-lock-comment-face)
+                    (,(rx bol
+                          (group-n 2
+                                   (group-n 1 (any "*="))
+                                   (1+ (backref 1)))
+                          eol)
+                     2 'font-lock-comment-face)
+                    (,(rx bol (0+ space)
+                          (group (1+ "-"))
+                          eol)
+                     1 'font-lock-comment-face))))
+
+(defun $notfiy-compile-done (buffer exit-string)
+  "notfiy the user that compliation is finished"
+  (alert "compliation finished"
+         :severity (if (string-prefix-p "exited abnormally" exit-string)
+                       'high
+                     'normal)))
+(setq compilation-finish-functions '($notfiy-compile-done))
+
+(add-to-list 'compilation-error-regexp-alist-alist
+             `(ipgen-gmake ,(rx bol "gmake" (optional "[1]") ": *** [" (group-n 1 (1+ nonl)) "] Error " digit) 1))
+(add-to-list 'compilation-error-regexp-alist-alist
+             `(bman-line ,(rx bol "-I-:Error: " (group-n 3 (1+ nonl))
+                              "\n-I-:-" (or "E" "F") "-: [CRT-" (1+ digit) "] Error in "
+                              (1+ nonl) " file " (group-n 1 (1+ (not (any space)))) (0+ space)
+                              "\n-I-: Error at line# " (group-n 2 (1+ digit)) (1+ nonl))
+                         1 2 nil nil nil (3 font-lock-warning-face)))
+(add-to-list 'compilation-error-regexp-alist-alist
+             `(bman-verilog ,(rx bol "-I-:Error-" (1+ nonl)
+                                 "\n-I-:" (group-n 1 (1+ (not space))) ", " (group-n 2 (1+ digit))) 1 2))
+(add-to-list 'compilation-error-regexp-alist-alist `(bman-stage ,(rx bol "-E-: FAILED: " (1+ (not space)) " : LOG : " (group (1+ (not space)))) 1))
+(setq compilation-error-regexp-alist '(ipgen-gmake bman-line bman-stage bman-verilog))
+
+(spacemacs/set-leader-keys-for-minor-mode 'compilation-minor-mode
+  "e" 'compile-errors/body)
+
+(defhydra compile-errors ()
+  ("n" compilation-next-error "next")
+  ("j" compilation-next-error)
+  ("p" compilation-previous-error "previous")
+  ("k" compilation-previous-error))
+
 
 (setq json-encoding-default-indentation "    ")
 
