@@ -20,6 +20,7 @@
     (spfspec-mode :location local)
     (postsim-mode :location local)
     (tracker-mode :location local)
+    (spf-mode     :location local)
     ))
 
 (defun major-modes/init-itpp-mode ()
@@ -60,4 +61,6 @@
   (use-package tracker-mode
     :defer t))
 
+(defun major-modes/init-spf-mode ()
+  (use-package spf-mode))
 ;;; packages.el ends here

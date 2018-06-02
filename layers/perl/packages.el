@@ -15,48 +15,49 @@
   "Perl mode init function."
   (use-package perl-mode
     :defer t
-    :mode "\\.ip_info\\'"
-    :mode "\\.spf\\'"
-    :mode "\\.espf\\'"
     :mode "\\.espflist\\'"
+    :mode "\\.ip_info\\'"
     :mode "\\.tdr\\'"
     :mode "\\.udf\\'"
     :mode "\\.hdl\\'"
     :mode "\\.rc\\'"
     :mode (rx "." (or "cfg" "txt") ".template" eos)
+    :init
+    (setq perl-indent-parens-as-block t)
+    ;;   :config
+    ;;   (progn
+    ;;     ;; correct for Intel-style binary and hex notation
+    ;;     (defalias '$perl-syntax-propertize-function
+    ;;       (eval `(syntax-propertize-rules
+    ;;               (,(rx (group-n 1 "'")
+    ;;                     (1+ (not (any "';(){}[],")))
+    ;;                     (any ";(){}[],"))
+    ;;                (1 ".")))))
 
-    :config
-    (progn
-      ;; correct for Intel-style binary and hex notation
-      (defalias '$perl-syntax-propertize-function
-        (eval `(syntax-propertize-rules
-                (,(rx (group-n 1 "'")
-                      (1+ (not (any "';(){}[],")))
-                      (any ";(){}[],"))
-                 (1 ".")))))
+    ;;     (add-hook 'perl-mode-hook
+    ;;               (lambda ()
+    ;;                 (setq prettify-symbols-alist perl5--prettify-symbols-alist)
+    ;;                 (prettify-symbols-mode)
+    ;;                 (add-function :before (local 'syntax-propertize-function)
+    ;;                               #'$perl-syntax-propertize-function)))
 
-      (add-hook 'perl-mode-hook
-                (lambda ()
-                  (setq prettify-symbols-alist perl5--prettify-symbols-alist)
-                  (prettify-symbols-mode)
-                  (add-function :before (local 'syntax-propertize-function)
-                                #'$perl-syntax-propertize-function)))
-
-      (font-lock-add-keywords
-       'perl-mode
-       `((,(rx symbol-start "repeat" symbol-end) . font-lock-type-face)
-         ,(rx symbol-start (or "pass"
-                               "set"
-                               "comment"
-                               "compare"
-                               "flush"
-                               "label"
-                               "focus_tap"
-                               "unfocus_tap"
-                               "set_stf_packet"
-                               "focus_stf"
-                               "cycle")
-              symbol-end))))))
+    ;;     (font-lock-add-keywords
+    ;;      'perl-mode
+    ;;      `((,(rx symbol-start "repeat" symbol-end) . font-lock-type-face)
+    ;;        ,(rx symbol-start (or "pass"
+    ;;                              "set"
+    ;;                              "comment"
+    ;;                              "compare"
+    ;;                              "flush"
+    ;;                              "label"
+    ;;                              "focus_tap"
+    ;;                              "unfocus_tap"
+    ;;                              "set_stf_packet"
+    ;;                              "focus_stf"
+    ;;                              "cycle")
+    ;;             symbol-end))))
+    )
+  )
 
 (defun perl/init-cperl-mode ()
   (use-package cperl-mode
