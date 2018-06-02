@@ -650,13 +650,43 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
                  (setq line (1+ line)))
         (goto-char start)))))
 
-(defun $copy-file ()
+(defun $magit-status-current-directory ()
+  "limit magit status the current directory"
   (interactive)
-  (let* ((destination (read-file-name "Write File: "))
-         (dir (file-name-directory destination)))
-    (unless (file-exists-p dir)
-      (make-directory dir :parents))
-    (write-file destination :confirm)))
-(spacemacs/set-leader-keys "fc" #'$copy-file)
+  (let* ((root (vc-git-root default-directory))
+         (dir (list (file-relative-name default-directory root)))
+         (old-hook magit-status-mode-hook))
+    (add-hook 'magit-status-mode-hook
+              (lambda () (setq-local magit-diff-section-file-args dir)))
+    (magit-status-internal root)
+    (setq magit-status-mode-hook old-hook)))
+(spacemacs/set-leader-keys "gd" #'$magit-status-current-directory)
+
+(defun $magit-status-clear-local-dir (fn &rest args)
+  (let ((old-hook magit-status-mode-hook))
+    (add-hook 'magit-status-mode-hook
+              (lambda ()
+                (when (--none? (eq (car it) 'magit-diff-section-file-args)
+                               dir-local-variables-alist)
+                  (setq-local magit-diff-section-file-args nil))))
+    (apply fn args)
+    (setq magit-status-mode-hook old-hook)))
+(advice-add 'magit-status :around #'$magit-status-clear-local-dir)
+
+(spacemacs/set-leader-keys "gfb" #'magit-checkout-file)
+(spacemacs/set-leader-keys "gfd" #'magit-diff-buffer-file)
+
+(defun $git-work-user ()
+  "Set my work credentials"
+  (interactive)
+  (shell-command "git config --local user.name \"Hinckley, Troy J\" &&
+     git config --local user.email troy.j.hinckley@intel.com"))
+
+(defun $git-private-user ()
+  "Set my private credentials"
+  (interactive)
+  (shell-command "git config --local user.name CeleritasCelery &&
+     git config --local user.email t.macman@gmail.com"))
+
 
 (provide 'general-config)
