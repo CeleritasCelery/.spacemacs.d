@@ -51,7 +51,12 @@
     smex
     eval-in-repl
     #targets.el
+    alert
     ))
+
+(defun config/init-alert ()
+  (use-package alert
+    :custom (alert-default-style 'fringe)))
 
 (defun config/init-eval-in-repl ()
   (use-package eval-in-repl :ensure t
