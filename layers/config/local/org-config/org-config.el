@@ -141,6 +141,17 @@ item"
   (define-key org-mode-map (kbd "<ret>") '$org-smart-return)
   (define-key org-mode-map (kbd "RET") '$org-smart-return))
 
+(defun $org-procrastinate (arg)
+  (interactive "P")
+  (let ((fn (if (eq major-mode 'org-agenda-mode)
+                'org-agenda-schedule
+              'org-schedule)))
+    (funcall fn arg "+1d")))
+(spacemacs/set-leader-keys-for-major-mode 'org-mode "S" '$org-procrastinate)
+(spacemacs/set-leader-keys-for-major-mode 'org-agenda-mode "S" '$org-procrastinate)
+
+
+(setq org-agenda-files "~/org/.agenda-files") ;; where to search for TODO's
 
 (spacemacs|define-transient-state org-journal
   :title "navigate org journals"
