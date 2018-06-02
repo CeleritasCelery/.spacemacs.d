@@ -360,11 +360,8 @@ If a file name, copy the full path"
 			(setq comment-start "// "
 				  comment-end "")))
 
-(add-hook 'json-mode-hook (lambda () (setq indent-tabs-mode t
-										   tab-width 3)))
-
 (add-hook 'verilog-mode-hook (lambda () (setq indent-tabs-mode nil
-											  tab-width 3)))
+                                         tab-width 3)))
 
 (add-hook 'java-mode-hook (lambda ()
                             (setq c-basic-offset 3)))
@@ -479,6 +476,56 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
 (spacemacs/set-leader-keys "wv" '$split-window-right)
 (spacemacs/set-leader-keys "ws" '$split-window-below)
 
+(setq json-encoding-default-indentation "    ")
+
+(defvar $json-array-max-cuddle-size 3
+  "the max size of a JSON array that will be cuddled")
+
+(defun $json-format-buffer ()
+  "format the buffer, keeping some elements more compact"
+  (interactive)
+  (json-pretty-print-buffer)
+  ($json-cuddle-obj-array-delimiter)
+  ($json-cuddle-array $json-array-max-cuddle-size))
+
+(defun $json-cuddle-obj-array-delimiter ()
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward (rx ": [" eol) nil 'noerror)
+      (let ((array-start (1- (point)))
+            obj-start)
+        (forward-line)
+        (when (looking-at-p (rx (1+ space) "{" (optional ",") eol))
+          (setq obj-start (point))
+          (goto-char array-start)
+          (forward-list)
+          (forward-line -1)
+          (end-of-line)
+          (indent-rigidly obj-start
+                          (point)
+                          (- (length json-encoding-default-indentation)))
+          (join-line 1)
+          (goto-char obj-start)
+          (join-line))))))
+
+(defun $json-cuddle-array (max-size)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward (rx "[" eol) nil 'noerror)
+      (let ((start (point))
+            (col (progn (back-to-indentation)
+                        (current-column)))
+            (line 1)
+            (max (1+ max-size)))
+        (cl-loop while (<= line max) do
+                 (forward-line)
+                 (move-to-column col )
+                 (when (looking-at-p (rx (1+ (char "]")) (optional ",") eol))
+                   (dotimes (_ line)
+                     (join-line))
+                   (cl-return))
+                 (setq line (1+ line)))
+        (goto-char start)))))
 
 (defun $copy-file ()
   (interactive)
