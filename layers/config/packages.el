@@ -50,9 +50,13 @@
     counsel
     smex
     eval-in-repl
-    #targets.el
     alert
+    compile
     ))
+
+(defun config/init-compile ()
+  (use-package compile
+    :diminish (compilation-minor-mode . "Ⓒ")))
 
 (defun config/init-alert ()
   (use-package alert
