@@ -422,6 +422,12 @@ If a file name, copy the full path"
   (advice-add 'helm-find-files-get-candidates
               :filter-return '$helm-ff-dots-at-bottom))
 
+(defun $helm-swoop-revert (&rest _)
+  (helm-swoop--clear-cache))
+(with-eval-after-load 'helm-swoop
+  (add-hook 'after-revert-hook 'helm-swoop--clear-cache)
+  (advice-add 'undo-tree-undo-1 :after '$helm-swoop-revert))
+
 (defun $plist-get (list prop)
   (when-let ((index (1+ (seq-position list prop))))
     (nth index list)))
