@@ -52,7 +52,14 @@
     eval-in-repl
     alert
     compile
+    evil-collection
     ))
+
+(defun config/init-evil-collection ()
+  (use-package evil-collection
+    :after evil
+    :config
+    (evil-collection-init '(compile))))
 
 (defun config/init-compile ()
   (use-package compile
