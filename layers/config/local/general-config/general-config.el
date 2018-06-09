@@ -605,17 +605,19 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
   "normalize characters used in Microsoft formatting"
   (interactive "r")
   (save-excursion
-    (goto-char beg)
-    (when (re-search-forward (rx (char "–‘’“”")) end 'no-error)
-      (let* ((orig-text (buffer-substring beg end))
-             (normalized-text
-              (thread-last orig-text
-                (replace-regexp-in-string "–" "--") ;; Em-dash
-                (replace-regexp-in-string (rx (char "‘’")) "'")
-                (replace-regexp-in-string (rx (char "“”")) "\""))))
-        (goto-char beg)
-        (delete-region beg end)
-        (insert normalized-text)))))
+    (let ((beg (max beg (point-min)))
+          (end (min end (point-max))))
+      (goto-char beg)
+      (when (re-search-forward (rx (char "–‘’“”")) end 'no-error)
+        (let* ((orig-text (buffer-substring beg end))
+               (normalized-text
+                (thread-last orig-text
+                  (replace-regexp-in-string "–" "--") ;; Em-dash
+                  (replace-regexp-in-string (rx (char "‘’")) "'")
+                  (replace-regexp-in-string (rx (char "“”")) "\""))))
+          (goto-char beg)
+          (delete-region beg end)
+          (insert normalized-text))))))
 
 (defun $normalize-evil-paste (&rest _)
   "Normalize last evil paste"
@@ -685,6 +687,8 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
                    (cl-return))
                  (setq line (1+ line)))
         (goto-char start)))))
+
+(add-to-list 'hs-special-modes-alist (list 'json-mode (rx (any "{[")) (rx (any "]}")) (rx "/" (any "/*"))))
 
 (defun $magit-status-current-directory ()
   "limit magit status the current directory"
