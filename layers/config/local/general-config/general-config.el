@@ -354,17 +354,17 @@ If a file name, copy the full path"
 
 (spacemacs/set-leader-keys "ox" 'convert-radix)
 
+(spacemacs/set-leader-keys "sd" 'helm-do-ag-this-file)
+(spacemacs/set-leader-keys "er" 're-builder)
+
 (add-hook 'c-mode-common-hook
-		  ;; prefered comment style
-		  (lambda ()
-			(setq comment-start "// "
-				  comment-end "")))
+          ;; prefered comment style
+          (lambda ()
+            (setq comment-start "// "
+                  comment-end "")))
 
 (add-hook 'verilog-mode-hook (lambda () (setq indent-tabs-mode nil
                                          tab-width 3)))
-
-(add-hook 'java-mode-hook (lambda ()
-                            (setq c-basic-offset 3)))
 
 (spacemacs|define-transient-state imagex
   :title "Image Manipulation Transient State"
