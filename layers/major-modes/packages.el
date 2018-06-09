@@ -21,7 +21,11 @@
     (postsim-mode :location local)
     (tracker-mode :location local)
     (spf-mode     :location local)
+    (log-mode     :location local)
     ))
+
+(defun najor-modes/init-log-mode ()
+  (use-package log-mode))
 
 (defun major-modes/init-itpp-mode ()
   (use-package itpp-mode))
