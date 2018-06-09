@@ -508,7 +508,8 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
           (lambda (major-mode)
             (concat "*" (f-filename model-root) " " dut " " (downcase major-mode) "*"))))
     (compile (concat "source setup && $DFT_REPO_ROOT/DFTNetworkGen/run_dft_ipgen"
-                     (if arg "" " -B")))))
+                     (if arg " -B" "")))))
+(spacemacs/set-leader-keys "ci" '$run-ipgen)
 
 (defun $run-bman ()
   "run dft ipgen in the current model"
@@ -519,8 +520,10 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
           (lambda (major-mode)
             (concat "*" (f-filename model-root) " bman " (downcase major-mode) "*"))))
     ;; TODO: need to remove this hardcoded value
-    (compile "source /p/hdk/rtl/hdk.rc -cfg shdk74 && bman -dut mdf_10nm")))
-(spacemacs/set-leader-keys "ci" '$run-ipgen)
+    (compile "source /p/hdk/rtl/hdk.rc -cfg shdk74 && bman -dut mdf_10nm -s emu -s sgdft -s sglp -s sglp_legacy -s lintra_ol -s FLG -s hip_listgen -s lintra")
+    ;; (compile "source /p/hdk/rtl/hdk.rc -cfg shdk74 && bman -dut mdf_10nm -s all +s vcs")
+    ))
+(spacemacs/set-leader-keys "cb" '$run-bman)
 
 (defun $compile-with-tcsh (fn &rest args)
   (let ((shell-file-name "tcsh"))
@@ -555,16 +558,37 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
 (add-to-list 'compilation-error-regexp-alist-alist
              `(ipgen-gmake ,(rx bol "gmake" (optional "[1]") ": *** [" (group-n 1 (1+ nonl)) "] Error " digit) 1))
 (add-to-list 'compilation-error-regexp-alist-alist
-             `(bman-line ,(rx bol "-I-:Error: " (group-n 3 (1+ nonl))
-                              "\n-I-:-" (or "E" "F") "-: [CRT-" (1+ digit) "] Error in "
-                              (1+ nonl) " file " (group-n 1 (1+ (not (any space)))) (0+ space)
-                              "\n-I-: Error at line# " (group-n 2 (1+ digit)) (1+ nonl))
-                         1 2 nil nil nil (3 font-lock-warning-face)))
+             `(core-assembler ,(rx bol "Information: script '" (group-n 1 (1+ (not (any "'"))))
+                                   "'\n" (1+ space) "stopped at line " (group-n 2 (1+ digit)) (1+ nonl)) 1 2))
+(add-to-list 'compilation-error-regexp-alist-alist
+             `(connection-error ,(rx bol (optional "-I-:") "Error: " (group-n 3 (1+ nonl))
+                                     "\n" (optional "-I-:") "-" (or "E" "F") "-: [CRT-" (1+ digit) "] Error in "
+                                     (1+ nonl) " file " (group-n 1 (1+ (not (any space)))) (0+ space)
+                                     "\n" (optional "-I-:") " Error at line# " (group-n 2 (1+ digit)) (1+ nonl))
+                                1 2 nil nil nil (3 font-lock-warning-face)))
 (add-to-list 'compilation-error-regexp-alist-alist
              `(bman-verilog ,(rx bol "-I-:Error-" (1+ nonl)
                                  "\n-I-:" (group-n 1 (1+ (not space))) ", " (group-n 2 (1+ digit))) 1 2))
-(add-to-list 'compilation-error-regexp-alist-alist `(bman-stage ,(rx bol "-E-: FAILED: " (1+ (not space)) " : LOG : " (group (1+ (not space)))) 1))
-(setq compilation-error-regexp-alist '(ipgen-gmake bman-line bman-stage bman-verilog))
+(add-to-list 'compilation-error-regexp-alist-alist
+             `(bman-stage ,(rx bol "-E-: FAILED: " (1+ (not space)) " : LOG : " (group (1+ (not space)))) 1))
+(add-to-list 'compilation-error-regexp-alist-alist
+             `(ipgen-hdl-copy ,(rx bol "-I-:Error-[MPD] Module previously declared"
+                                   "\n-I-:  The module was previously declared at: "
+                                   "\n-I-:  \"" (group (1+ (not space))) "/" (1+ (not space)) (or ".vs" ".sv") "\",") (1 "%s/dft_ipgen.hdl")))
+(with-eval-after-load 'compile
+  (setq compilation-error-regexp-alist '(ipgen-hdl-copy ipgen-gmake core-assembler connection-error bman-stage bman-verilog)))
+
+(defun $complilation-detect-core-assembler-stall ()
+  "termiate compilation when core assembler stalls"
+  (when (looking-back (rx bol "CoreAssembler> ") (line-beginning-position))
+    ;; (let ((proc (get-buffer-process (current-buffer))))
+    ;;   (compilation-handle-exit 'core-assembler 2 "core assembler stall")
+    ;;   (delete-process proc)
+    ;;   (setq compilation-in-progress (delq proc compilation-in-progress)))
+
+    (alert "Core Assembler stall"
+           :severity 'moderate)))
+(add-hook 'compilation-filter-hook #'$complilation-detect-core-assembler-stall)
 
 (spacemacs/set-leader-keys-for-minor-mode 'compilation-minor-mode
   "e" 'compile-errors/body)
