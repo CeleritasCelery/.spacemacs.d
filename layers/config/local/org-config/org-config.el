@@ -179,13 +179,13 @@ item"
 (spacemacs/set-leader-keys "oo" 'org-capture)
 
 (setq org-refile-targets '((nil :maxlevel . 2)
-                           ("projects/mdf.org" :maxlevel . 2)
-                           ("projects/snr/snr_scan.org" :maxlevel . 2)
-                           ("meeting-notes/mdf_meet.org" :maxlevel . 2)
-                           ("meeting-notes/integ_meet.org" :maxlevel . 2)
-                           ("dev/.development.org" :maxlevel . 1)))
+                           ("~/org/projects/mdf.org" :maxlevel . 2)
+                           ("~/org/projects/snr/snr_scan.org" :maxlevel . 2)
+                           ("~/org/meeting-notes/mdf_meet.org" :maxlevel . 2)
+                           ("~/org/meeting-notes/integ_meet.org" :maxlevel . 2)
+                           ("~/org/dev/.development.org" :maxlevel . 1)))
 
-(setq org-outline-path-complete-in-steps nil)   ;; Refile in a single go
+(setq org-outline-path-complete-in-steps t)   ;; Refile in a single go
 (setq org-refile-use-outline-path 'file)            ;; Show full paths for refiling
 
 (setq org-clock-persist 'history)
