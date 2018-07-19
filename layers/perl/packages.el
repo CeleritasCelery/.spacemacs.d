@@ -23,41 +23,7 @@
     :mode "\\.rc\\'"
     :mode (rx "." (or "cfg" "txt") ".template" eos)
     :init
-    (setq perl-indent-parens-as-block t)
-    ;;   :config
-    ;;   (progn
-    ;;     ;; correct for Intel-style binary and hex notation
-    ;;     (defalias '$perl-syntax-propertize-function
-    ;;       (eval `(syntax-propertize-rules
-    ;;               (,(rx (group-n 1 "'")
-    ;;                     (1+ (not (any "';(){}[],")))
-    ;;                     (any ";(){}[],"))
-    ;;                (1 ".")))))
-
-    ;;     (add-hook 'perl-mode-hook
-    ;;               (lambda ()
-    ;;                 (setq prettify-symbols-alist perl5--prettify-symbols-alist)
-    ;;                 (prettify-symbols-mode)
-    ;;                 (add-function :before (local 'syntax-propertize-function)
-    ;;                               #'$perl-syntax-propertize-function)))
-
-    ;;     (font-lock-add-keywords
-    ;;      'perl-mode
-    ;;      `((,(rx symbol-start "repeat" symbol-end) . font-lock-type-face)
-    ;;        ,(rx symbol-start (or "pass"
-    ;;                              "set"
-    ;;                              "comment"
-    ;;                              "compare"
-    ;;                              "flush"
-    ;;                              "label"
-    ;;                              "focus_tap"
-    ;;                              "unfocus_tap"
-    ;;                              "set_stf_packet"
-    ;;                              "focus_stf"
-    ;;                              "cycle")
-    ;;             symbol-end))))
-    )
-  )
+    (setq perl-indent-parens-as-block t)))
 
 (defun perl/init-cperl-mode ()
   (use-package cperl-mode
@@ -109,15 +75,15 @@
                         (any alpha "_:")
                         (0+ (any alnum "_:"))))
           1
-            (if (eq (char-after (match-beginning 2)) ?%)
-                'cperl-hash-face
-              'cperl-array-face))
+          (if (eq (char-after (match-beginning 2)) ?%)
+              'cperl-hash-face
+            'cperl-array-face))
          ("\\(\\([$@]+\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)[ \t]*\\([[{]\\)" 1
-            (if (= (- (match-end 2) (match-beginning 2)) 1)
-                (if (eq (char-after (match-beginning 3)) ?{)
-                    'cperl-hash-face
-                  'cperl-array-face)
-              font-lock-variable-name-face))
+          (if (= (- (match-end 2) (match-beginning 2)) 1)
+              (if (eq (char-after (match-beginning 3)) ?{)
+                  'cperl-hash-face
+                'cperl-array-face)
+            font-lock-variable-name-face))
          (,(rx (group-n 1 "@") "{")
           1
           (if (eq (char-after (match-beginning 1)) ?%)
@@ -132,9 +98,7 @@
       ;; tab key will ident all marked code when tab key is pressed
       (add-hook 'cperl-mode-hook (lambda ()
                                    (local-set-key (kbd "<tab>") 'indent-for-tab-command)
-                                   (modify-syntax-entry ?: "." (syntax-table))
-                                   (setq prettify-symbols-alist perl5--prettify-symbols-alist)
-                                   (prettify-symbols-mode)))
+                                   (modify-syntax-entry ?: "." (syntax-table))))
 
       ;; Use less horrible colors for cperl arrays and hashes
       (set-face-attribute 'cperl-array-face nil :foreground  "#DD7D0A"    :background 'unspecified :weight 'unspecified)

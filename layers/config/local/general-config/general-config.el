@@ -662,6 +662,28 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
 
 (setq json-encoding-default-indentation "    ")
 
+(defvar $prog-prettify-symbols-alist
+  `(("&&"  . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE100)))
+    ("||"  . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE104)))
+    ("::"  . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE106)))
+    ("=="  . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE107)))
+    ("=>"  . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE10A)))
+    ("->"  . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE112)))
+    ("<<"  . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE11C)))
+    (".."  . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE11F)))
+    ("++"  . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE121)))
+    ("!="  . (?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE123)))
+    ("..." . (?\s (Br . Bl) ?\s (Br . Bl) ?\s (Br . Br) ,(decode-char 'ucs #XE120)))
+    ("<="  . (?\s (Br . Bl) ?\s (Bc . Bc) ?< (Bc . Bc) ?_))
+    (">="  . (?\s (Br . Bl) ?\s (Bc . Bc) ?> (Bc . Bc) ?_)))
+  "ligatures for the Hasklig font. Mapped to unicode open glyphs")
+
+(defun $prettify-base-symbols ()
+  (dolist (symbol $prog-prettify-symbols-alist)
+    (add-to-list 'prettify-symbols-alist symbol))
+  (prettify-symbols-mode))
+(add-hook 'prog-mode-hook '$prettify-base-symbols)
+
 (defvar $json-array-max-cuddle-size 3
   "the max size of a JSON array that will be cuddled")
 
