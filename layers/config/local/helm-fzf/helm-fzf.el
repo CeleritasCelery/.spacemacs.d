@@ -25,20 +25,26 @@
            when (locate-dominating-file default-directory dir)
            return it))
 
-(defvar helm-fzf-source
-  (helm-build-async-source "fzf"
-    :candidates-process 'helm-fzf--do-candidate-process
-    :filter-one-by-one 'identity
-    :requires-pattern 3
-    :action 'helm-find-file-or-marked
-    :candidate-number-limit 9999))
+(setq helm-fzf-source
+      (helm-build-async-source "fzf"
+        :candidates-process 'helm-fzf--do-candidate-process
+        :requires-pattern 3
+        :action 'helm-type-file-actions
+        :persistent-action 'helm-fzf-kill-or-find-buffer-fname
+        :action-transformer 'helm-transform-file-load-el
+        :keymap helm-generic-files-map
+        :candidate-number-limit 9999))
+
+(defun helm-fzf-kill-or-find-buffer-fname (candidate)
+  (let ((default-directory (helm-default-directory)))
+    (helm-ff-kill-or-find-buffer-fname candidate)))
 
 (defun helm-fzf--do-candidate-process ()
-  (let* ((cmd-args (-filter 'identity (list helm-fzf-executable
-                                            "--no-sort"
-                                            "--exact"
-                                            "-f"
-                                            helm-pattern)))
+  (let* ((cmd-args (list helm-fzf-executable
+                         "--no-sort"
+                         "--exact"
+                         "-f"
+                         helm-pattern))
          (proc (apply 'start-file-process "helm-fzf" helm-buffer cmd-args)))
     (prog1 proc
       (set-process-sentinel
@@ -56,11 +62,9 @@
 
 (defun helm-fzf-project-root ()
   (interactive)
-  (let ((default-directory (helm-fzf--project-root)))
-    (unless default-directory
-      (error "Could not find the project root."))
-    (helm :sources '(helm-fzf-source)
-          :buffer "*helm-fzf*")))
+  (if-let ((dir (helm-fzf--project-root)))
+      (helm-fzf dir)
+    (error "Could not find the project root.")))
 
 ;;;###autoload
 (defun helm-fzf-from-session ()
