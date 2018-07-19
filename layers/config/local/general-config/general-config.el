@@ -158,23 +158,17 @@
   ("8" (helm-select-nth-action 8)  :exit t)
   ("9" (helm-select-nth-action 9)  :exit t)
   ("0" (helm-select-nth-action 10) :exit t)
-  ("<RET>" helm-maybe-exit-minibuffer :exit t)
-  ("j" helm-next-line "next line" :column "Lines")
-  ("k" helm-previous-line "prev line")
-  ("g" helm-beginning-of-buffer "first line")
+  ("g" helm-beginning-of-buffer "first line" :column "Lines")
   ("G" helm-end-of-buffer "last line")
   ("h" helm-previous-source "previous source" :column "Scroll")
   ("l" helm-next-source "next source")
   ("K" helm-scroll-other-window-down "source window down")
   ("J" helm-scroll-other-window "source window up")
-  ("m" helm-toggle-visible-mark "mark" :column "Mode")
-  ("t" helm-toggle-all-marks "toggle all marks")
+  ("t" helm-toggle-all-marks "toggle all marks" :column "Mode")
   ("f" helm-follow-mode "follow mode")
   ("w" helm-toggle-resplit-and-swap-windows "swap window")
-  ("a" (call-interactively 'helm-select-action) "actions" :column "Execute" :exit t)
-  ("e" helm-edit "edit" :exit t)
+  ("e" helm-edit "edit" :exit t :column "Execute")
   ("y" helm-copy-to-kill-ring "yank" :exit t)
-  ("v" helm-execute-persistent-action "view")
   ("H" helm-help "help" :column "Other" :exit t)
   ("q" nil "quit" :exit t))
 
@@ -184,12 +178,12 @@
   ("D" helm-ff-run-delete-file "delete and quit")
   ("d" helm-ff-persistent-delete "delete")
   ("s" helm-ag-from-session "search")
-  ("/" helm-ff-run-find-sh-command "find")
   ("z" helm-fzf-from-session "fzf")
   ("x" helm-ff-run-ediff-file "ediff")
-  ("o" $helm-ff-run-switch-to-shell "shell")
+  ("'" $helm-ff-run-switch-to-shell "shell")
   ("i" helm-ff-file-name-history "file history")
-  ("r" helm-find-files-history "directory history"))
+  ("r" helm-find-files-history "directory history")
+  ("m" magit-from-helm-session "git status"))
 
 (defun helm-edit ()
   "Switch in edit mode depending on the current helm buffer."
@@ -217,6 +211,14 @@
                       cand)
          cand)))))
 
+(defun magit-from-helm-session ()
+  "run magit from a helm session"
+  (interactive)
+  (with-helm-alive-p
+    (helm-run-after-exit
+     '$magit-status-in-dir
+     helm-ff-default-directory)))
+
 (defun helm-copy-to-kill-ring ()
   "Copy selection or marked candidates to the kill ring.
 Note that the real values of candidates are copied and not the
@@ -242,8 +244,11 @@ If a file name, copy the full path"
   (put 'helm-copy-to-kill-ring 'helm-only t))
 (with-eval-after-load 'helm-files
   (define-key helm-find-files-map (kbd "C-c s") 'helm-ag-from-session)
+  (define-key helm-read-file-map (kbd "C-c s") 'helm-ag-from-session)
+  (define-key helm-generic-files-map (kbd "C-c s") 'helm-ag-from-session)
   (define-key helm-find-files-map (kbd "C-o") 'helm-ff-nav/body)
   (define-key helm-read-file-map (kbd "C-o") 'helm-ff-nav/body)
+  (define-key helm-generic-files-map (kbd "C-o") 'helm-ff-nav/body)
   (put 'helm-ag-from-session 'helm-only t))
 
 (defun mc-column--col-at-point (point)
@@ -526,10 +531,28 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
 (spacemacs/set-leader-keys "cb" '$run-bman)
 
 (defun $compile-with-tcsh (fn &rest args)
+  "use tcsh (standard intel shell) for compilation"
   (let ((shell-file-name "tcsh"))
     (apply fn args)))
+
 (advice-add 'compile :around #'$compile-with-tcsh)
 (advice-add 'recompile :around #'$compile-with-tcsh)
+
+(defvar $current-compilation-dir nil
+  "root of current compliation")
+
+(defun $set-compilation-dir (&rest _)
+  "set the root of the current compilation"
+  (setq $current-compilation-dir default-directory))
+
+(setq compilation-save-buffers-predicate
+      (lambda ()
+        (when-let ((root (vc-git-root (buffer-file-name)))
+                   (comp-root (vc-git-root $current-compilation-dir)))
+          (f-same? comp-root root))))
+
+(advice-add 'compile :before #'$set-compilation-dir)
+(advice-add 'recompile :before #'$set-compilation-dir)
 
 (with-eval-after-load 'compile
   (font-lock-add-keywords 'compilation-mode
@@ -688,19 +711,34 @@ https://stackoverflow.com/questions/24914202/elisp-call-keymap-from-code"
                  (setq line (1+ line)))
         (goto-char start)))))
 
-(add-to-list 'hs-special-modes-alist (list 'json-mode (rx (any "{[")) (rx (any "]}")) (rx "/" (any "/*"))))
+(defun $json-convert-null-to-emtpy-obj ()
+  "our xweave parser can't handle nulls."
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward (rx ": null") nil 'noerror)
+      (replace-match ": {}"))))
 
-(defun $magit-status-current-directory ()
-  "limit magit status the current directory"
-  (interactive)
-  (let* ((root (vc-git-root default-directory))
-         (dir (list (file-relative-name default-directory root)))
+(add-to-list 'hs-special-modes-alist (list 'json-mode (rx (any "{[")) (rx (any "]}")) (rx "/" (any "/*"))))
+(with-eval-after-load 'json-mode
+  (font-lock-add-keywords 'json-mode
+                  `((,(rx (group "//" (0+ nonl)) eol) 1 font-lock-comment-face))))
+
+
+(defun $magit-status-in-dir (dir)
+  "limit magit status dir directory"
+  (interactive "D")
+  (let* ((root (vc-git-root dir))
+         (dir (list (file-relative-name dir root)))
          (old-hook magit-status-mode-hook))
     (add-hook 'magit-status-mode-hook
               (lambda () (setq-local magit-diff-section-file-args dir)))
     (magit-status-internal root)
     (setq magit-status-mode-hook old-hook)))
-(spacemacs/set-leader-keys "gd" #'$magit-status-current-directory)
+(defun $magit-status-current-dir ()
+  "run magit in current dir"
+  (interactive)
+  ($magit-status-in-dir default-directory))
+(spacemacs/set-leader-keys "gd" #'$magit-status-current-dir)
 
 (defun $magit-status-clear-local-dir (fn &rest args)
   (let ((old-hook magit-status-mode-hook))
